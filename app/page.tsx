@@ -1,5 +1,9 @@
-import { ComponentExample } from "@/components/component-example";
+import ParallaxPortfolio from '@/components/hero/ParallaxPortfolio';
 
-export default function Page() {
-return <ComponentExample />;
+export default function Home() {
+    return (
+        <main>
+            <ParallaxPortfolio />
+        </main>
+    );
 }
