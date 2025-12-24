@@ -78,35 +78,36 @@ const SEASON_THEMES: Record<Season, ThemeColors> = {
     spring: {
         skyGradient: {
             stops: [
-                ['#1a2a3a', '0%'], ['#2a4055', '20%'], ['#4a6a8a', '40%'],
-                ['#7a9ab5', '60%'], ['#b5c5d5', '75%'], ['#e0c5b5', '88%'], ['#ffcaa0', '100%']
+                ['#1a1a2e', '0%'], ['#2d2d5a', '12%'], ['#4a3a6a', '25%'],
+                ['#6b4a7a', '38%'], ['#8b5a8a', '48%'], ['#c77b95', '60%'],
+                ['#e8a0aa', '72%'], ['#f5c4c8', '84%'], ['#ffdde1', '100%']
             ]
         },
         moon: {
-            surface: '#fff9e8', inner: '#fff5d8', outer: '#ffe8d0', crater: '#e6dcc8', halo: 'rgba(255,200,180,0.12)'
+            surface: '#fff0f5', inner: '#ffe8ef', outer: '#ffd0dd', crater: '#e8c0cc', halo: 'rgba(255,180,200,0.15)'
         },
-        stars: { color: '#fff5f0', glow: 'rgba(255,230,220,0.4)', intensity: 0.6 },
+        stars: { color: '#fff0f5', glow: 'rgba(255,200,220,0.5)', intensity: 0.5 },
         mountains: {
-            far: ['#6a7a7e', '#8a9ea0'],
-            midFar: ['#4a5a62', '#5a707a'],
-            mid: ['#3a4a55', '#4a5a68'],
-            snowCap: ['#e8f0ff', '#d0dce8'],
-            accent: '#7a8a90'
+            far: ['#5a5a70', '#7a7a90'],
+            midFar: ['#4a4a60', '#6a6a80'],
+            mid: ['#3a3a50', '#5a5a70'],
+            snowCap: ['#ffffff', '#f0f0f8'],
+            accent: '#8a8a9a'
         },
         forest: {
-            hills: ['#2a4538', '#3a5848'],
-            dense: ['#1a3028', '#253d32'],
-            foreground: ['#101f18', '#182a20'],
-            treeDark: '#0a1410',
-            treeLight: '#142520',
-            accent: '#3a5545'
+            hills: ['#3a7050', '#4a9060'],
+            dense: ['#2a5540', '#3a7550'],
+            foreground: ['#1a4030', '#2a5540'],
+            treeDark: '#153525',
+            treeLight: '#2a5540',
+            accent: '#5aaa70'
         },
         atmosphere: {
-            mist: ['rgba(255,220,200,0.06)', 'rgba(255,220,200,0)'],
-            overlay: 'rgba(255,200,180,0.02)',
+            mist: ['rgba(255,192,203,0.15)', 'rgba(255,192,203,0)'],
+            overlay: 'rgba(255,182,193,0.08)',
             aurora: false
         },
-        details: { text: '#f5f8fa', textSub: 'rgba(245,248,250,0.7)', background: '#151a22' }
+        details: { text: '#fff5f7', textSub: 'rgba(255,245,247,0.75)', background: '#1a1a28' }
     },
     summer: {
         skyGradient: {
@@ -212,9 +213,11 @@ const AtmosphericParticles = memo(function AtmosphericParticles({ season }: { se
                     boxShadow: '0 0 2px rgba(255,255,255,0.5)'
                 };
             case 'spring':
+                const pinkShades = ['#ff85a2', '#ff6b8a', '#ff9eb5', '#ffb6c1'];
                 return {
-                    borderRadius: '50% 10% 50% 10%',
-                    background: `linear-gradient(135deg, #ffd8e0 0%, #ffb8c8 100%)`,
+                    borderRadius: '50% 0% 50% 0%',
+                    background: `linear-gradient(135deg, ${pinkShades[p.id % pinkShades.length]} 0%, #ffccd5 100%)`,
+                    boxShadow: '0 0 4px rgba(255,105,135,0.4)',
                     transform: `rotate(${p.rotation}deg)`
                 };
             case 'summer':
@@ -264,43 +267,123 @@ const AtmosphericParticles = memo(function AtmosphericParticles({ season }: { se
 // SVG COMPONENTS (Refined & Memoized)
 // ============================================
 
-const Moon = memo(({ theme }: { theme: ThemeColors }) => (
-    <svg viewBox="0 0 1440 900" preserveAspectRatio="xMidYMax slice" className="w-full h-full">
-        <defs>
-            <radialGradient id="moonSurface" cx="35%" cy="35%" r="65%">
-                <stop offset="0%" stopColor={theme.moon.inner} className="transition-all duration-1000" />
-                <stop offset="40%" stopColor={theme.moon.surface} className="transition-all duration-1000" />
-                <stop offset="100%" stopColor={theme.moon.crater} className="transition-all duration-1000" />
-            </radialGradient>
-            <radialGradient id="moonHalo" cx="50%" cy="50%" r="50%">
-                <stop offset="0%" stopColor={theme.moon.halo} className="transition-all duration-1000" />
-                <stop offset="60%" stopColor={theme.moon.halo} stopOpacity="0.3" className="transition-all duration-1000" />
-                <stop offset="100%" stopColor={theme.moon.halo} stopOpacity="0" className="transition-all duration-1000" />
-            </radialGradient>
-            <radialGradient id="moonInnerGlow" cx="50%" cy="50%" r="50%">
-                <stop offset="70%" stopColor={theme.moon.outer} stopOpacity="0" className="transition-all duration-1000" />
-                <stop offset="95%" stopColor={theme.moon.outer} stopOpacity="0.15" className="transition-all duration-1000" />
-                <stop offset="100%" stopColor={theme.moon.outer} stopOpacity="0" className="transition-all duration-1000" />
-            </radialGradient>
-            <filter id="moonBlur" x="-100%" y="-100%" width="300%" height="300%">
-                <feGaussianBlur in="SourceGraphic" stdDeviation="12" />
-            </filter>
-            <filter id="craterShadow" x="-20%" y="-20%" width="140%" height="140%">
-                <feGaussianBlur in="SourceGraphic" stdDeviation="1" />
-            </filter>
-        </defs>
-        <circle cx="1120" cy="160" r="180" fill="url(#moonHalo)" filter="url(#moonBlur)" />
-        <circle cx="1120" cy="160" r="58" fill="url(#moonSurface)" />
-        <g opacity="0.15" filter="url(#craterShadow)">
-            <ellipse cx="1105" cy="145" rx="8" ry="7" fill={theme.moon.crater} className="transition-all duration-1000" />
-            <ellipse cx="1135" cy="155" rx="5" ry="4.5" fill={theme.moon.crater} className="transition-all duration-1000" />
-            <ellipse cx="1115" cy="175" rx="6" ry="5" fill={theme.moon.crater} className="transition-all duration-1000" />
-            <ellipse cx="1128" cy="140" rx="4" ry="3.5" fill={theme.moon.crater} className="transition-all duration-1000" />
-            <ellipse cx="1100" cy="165" rx="3" ry="2.5" fill={theme.moon.crater} className="transition-all duration-1000" />
-        </g>
-        <circle cx="1120" cy="160" r="58" fill="url(#moonInnerGlow)" />
-    </svg>
-));
+// Calculate moon phase (0-1) based on lunar cycle (~29.5 days)
+const getMoonPhase = () => {
+    const knownNewMoon = new Date('2024-01-11').getTime(); // Known new moon date
+    const lunarCycle = 29.53058867; // Days in lunar cycle
+    const now = Date.now();
+    const daysSinceNew = (now - knownNewMoon) / (1000 * 60 * 60 * 24);
+    return (daysSinceNew % lunarCycle) / lunarCycle;
+};
+
+const Moon = memo(({ theme }: { theme: ThemeColors }) => {
+    const phase = useMemo(() => getMoonPhase(), []);
+
+    // Phase determines shadow position: 0=new, 0.25=first quarter, 0.5=full, 0.75=last quarter
+    const isWaxing = phase < 0.5;
+    const illumination = phase < 0.5 ? phase * 2 : (1 - phase) * 2; // 0 to 1 to 0
+
+    // Calculate the shadow ellipse for the phase
+    const shadowOffset = isWaxing
+        ? (1 - illumination) * 120 - 60  // Waxing: shadow moves left to right
+        : -(1 - illumination) * 120 + 60; // Waning: shadow moves right to left
+
+    const cx = 1120;
+    const cy = 160;
+    const r = 58;
+
+    return (
+        <svg viewBox="0 0 1440 900" preserveAspectRatio="xMidYMax slice" className="w-full h-full">
+            <defs>
+                <radialGradient id="moonSurface" cx="35%" cy="35%" r="65%">
+                    <stop offset="0%" stopColor={theme.moon.inner} className="transition-all duration-1000" />
+                    <stop offset="40%" stopColor={theme.moon.surface} className="transition-all duration-1000" />
+                    <stop offset="100%" stopColor={theme.moon.crater} className="transition-all duration-1000" />
+                </radialGradient>
+                <radialGradient id="moonHalo" cx="50%" cy="50%" r="50%">
+                    <stop offset="0%" stopColor={theme.moon.halo} className="transition-all duration-1000" />
+                    <stop offset="60%" stopColor={theme.moon.halo} stopOpacity="0.3" className="transition-all duration-1000" />
+                    <stop offset="100%" stopColor={theme.moon.halo} stopOpacity="0" className="transition-all duration-1000" />
+                </radialGradient>
+                <radialGradient id="moonInnerGlow" cx="50%" cy="50%" r="50%">
+                    <stop offset="70%" stopColor={theme.moon.outer} stopOpacity="0" className="transition-all duration-1000" />
+                    <stop offset="95%" stopColor={theme.moon.outer} stopOpacity="0.15" className="transition-all duration-1000" />
+                    <stop offset="100%" stopColor={theme.moon.outer} stopOpacity="0" className="transition-all duration-1000" />
+                </radialGradient>
+                <radialGradient id="craterGrad" cx="30%" cy="30%" r="70%">
+                    <stop offset="0%" stopColor={theme.moon.crater} stopOpacity="0.3" />
+                    <stop offset="100%" stopColor={theme.moon.crater} stopOpacity="0.6" />
+                </radialGradient>
+                <filter id="moonBlur" x="-100%" y="-100%" width="300%" height="300%">
+                    <feGaussianBlur in="SourceGraphic" stdDeviation="12" />
+                </filter>
+                <filter id="craterShadow" x="-50%" y="-50%" width="200%" height="200%">
+                    <feGaussianBlur in="SourceGraphic" stdDeviation="0.8" />
+                </filter>
+                <filter id="craterInner" x="-50%" y="-50%" width="200%" height="200%">
+                    <feGaussianBlur in="SourceGraphic" stdDeviation="0.3" />
+                </filter>
+                <clipPath id="moonClip">
+                    <circle cx={cx} cy={cy} r={r} />
+                </clipPath>
+            </defs>
+
+            {/* Moon halo/glow */}
+            <circle cx={cx} cy={cy} r="180" fill="url(#moonHalo)" filter="url(#moonBlur)" opacity={0.5 + illumination * 0.5} />
+
+            {/* Moon base */}
+            <circle cx={cx} cy={cy} r={r} fill="url(#moonSurface)" />
+
+            {/* Detailed craters with depth */}
+            <g clipPath="url(#moonClip)">
+                {/* Large craters */}
+                <g filter="url(#craterShadow)">
+                    <ellipse cx={cx - 18} cy={cy - 12} rx="12" ry="10" fill="url(#craterGrad)" opacity="0.25" />
+                    <ellipse cx={cx - 16} cy={cy - 14} rx="8" ry="7" fill={theme.moon.surface} opacity="0.15" />
+                </g>
+                <g filter="url(#craterShadow)">
+                    <ellipse cx={cx + 12} cy={cy - 5} rx="9" ry="8" fill="url(#craterGrad)" opacity="0.2" />
+                    <ellipse cx={cx + 14} cy={cy - 7} rx="5" ry="4.5" fill={theme.moon.surface} opacity="0.12" />
+                </g>
+                <g filter="url(#craterShadow)">
+                    <ellipse cx={cx - 8} cy={cy + 18} rx="10" ry="9" fill="url(#craterGrad)" opacity="0.22" />
+                    <ellipse cx={cx - 6} cy={cy + 16} rx="6" ry="5" fill={theme.moon.surface} opacity="0.1" />
+                </g>
+
+                {/* Medium craters */}
+                <g filter="url(#craterInner)">
+                    <ellipse cx={cx + 22} cy={cy + 12} rx="6" ry="5.5" fill="url(#craterGrad)" opacity="0.18" />
+                    <ellipse cx={cx - 25} cy={cy + 5} rx="5" ry="4" fill="url(#craterGrad)" opacity="0.15" />
+                    <ellipse cx={cx + 5} cy={cy - 22} rx="4" ry="3.5" fill="url(#craterGrad)" opacity="0.16" />
+                </g>
+
+                {/* Small craters for texture */}
+                <g opacity="0.12">
+                    <circle cx={cx - 30} cy={cy - 8} r="2.5" fill={theme.moon.crater} />
+                    <circle cx={cx + 28} cy={cy - 18} r="2" fill={theme.moon.crater} />
+                    <circle cx={cx - 12} cy={cy + 28} r="2.2" fill={theme.moon.crater} />
+                    <circle cx={cx + 18} cy={cy + 25} r="1.8" fill={theme.moon.crater} />
+                    <circle cx={cx - 35} cy={cy + 20} r="1.5" fill={theme.moon.crater} />
+                    <circle cx={cx + 35} cy={cy + 5} r="2" fill={theme.moon.crater} />
+                </g>
+
+                {/* Moon phase shadow */}
+                {illumination < 0.98 && (
+                    <ellipse
+                        cx={cx + shadowOffset}
+                        cy={cy}
+                        rx={r * (1.2 - illumination * 0.4)}
+                        ry={r + 5}
+                        fill="rgba(0,0,0,0.85)"
+                    />
+                )}
+            </g>
+
+            {/* Inner edge glow */}
+            <circle cx={cx} cy={cy} r={r} fill="url(#moonInnerGlow)" />
+        </svg>
+    );
+});
 Moon.displayName = 'Moon';
 
 const SkyGradient = memo(({ theme }: { theme: ThemeColors }) => (
@@ -482,9 +565,9 @@ const ForestDense = memo(({ theme }: { theme: ThemeColors }) => {
     const trees = useMemo(() => {
         return [...Array(45)].map((_, i) => {
             const x = i * 32 + seededRandom(i * 4.7) * 15 - 5;
-            const baseY = 600 - Math.sin((x + 80) * 0.005) * 80;
-            const h = 45 + seededRandom(i * 2.3) * 40;
-            const w = 12 + seededRandom(i * 3.1) * 8;
+            const baseY = 680 - Math.sin((x + 80) * 0.005) * 40;
+            const h = 25 + seededRandom(i * 2.3) * 20;
+            const w = 10 + seededRandom(i * 3.1) * 6;
             return { x, baseY, h, w, seed: i * 7.9 };
         });
     }, []);
@@ -498,7 +581,7 @@ const ForestDense = memo(({ theme }: { theme: ThemeColors }) => {
                 </linearGradient>
             </defs>
             {/* Undulating forest floor */}
-            <path fill="url(#denseForest)" d="M0,900 L0,600 Q60,590 120,610 Q180,580 240,560 Q320,590 400,540 Q480,580 560,520 Q660,570 760,500 Q860,550 960,480 Q1060,530 1160,470 Q1260,520 1360,460 Q1400,490 1440,500 L1440,900 Z" />
+            <path fill="url(#denseForest)" d="M0,900 L0,650 Q60,640 120,660 Q180,630 240,610 Q320,640 400,590 Q480,630 560,570 Q660,620 760,550 Q860,600 960,530 Q1060,580 1160,520 Q1260,570 1360,510 Q1400,540 1440,550 L1440,900 Z" />
             {/* Dense treeline with organic shapes */}
             <g fill={theme.forest.treeDark} className="transition-all duration-1000">
                 {trees.map((t, i) => (
@@ -524,30 +607,25 @@ const Foreground = memo(({ theme }: { theme: ThemeColors }) => (
             </linearGradient>
         </defs>
         {/* Smooth foreground terrain */}
-        <path fill="url(#fgGround)" d="M0,900 L0,720 Q80,710 160,730 Q240,700 320,680 Q420,710 520,670 Q620,700 720,660 Q820,690 920,650 Q1020,680 1120,640 Q1220,670 1320,630 Q1380,660 1440,650 L1440,900 Z" />
+        <path fill="url(#fgGround)" d="M0,900 L0,750 Q80,740 160,760 Q240,730 320,710 Q420,740 520,700 Q620,730 720,690 Q820,720 920,680 Q1020,710 1120,670 Q1220,700 1320,660 Q1380,690 1440,680 L1440,900 Z" />
 
-        {/* Left large tree with detailed branches */}
+        {/* Left tree - shorter, starts lower */}
         <g fill={theme.forest.treeDark} className="transition-all duration-1000">
-            {/* Trunk and main foliage */}
-            <path d="M-30,900 L-30,480 Q-5,520 30,490 Q10,490 45,530 Q20,520 60,560 Q35,550 75,600 Q50,585 90,640 Q65,620 105,680 Q80,660 120,730 Q95,710 135,780 Q110,760 150,830 Q125,810 165,880 L165,900 Z" />
-            {/* Branch details */}
-            <path d="M30,490 Q-20,460 -45,440 Q-25,450 -50,430 Q-20,460 30,490 Z" opacity="0.9" />
-            <path d="M45,530 Q-10,500 -40,480 Q-15,495 -45,475 Q-5,505 45,530 Z" opacity="0.9" />
-            <path d="M60,560 Q5,535 -30,515 Q0,530 -35,510 Q10,545 60,560 Z" opacity="0.85" />
+            <path d="M-30,900 L-30,620 Q-5,650 30,630 Q10,640 45,670 Q20,660 60,700 Q35,690 75,730 Q50,720 90,760 Q65,750 105,790 Q80,780 120,830 Q95,820 135,860 L135,900 Z" />
+            <path d="M30,630 Q-20,610 -40,595 Q-25,605 -45,590 Q-15,615 30,630 Z" opacity="0.9" />
         </g>
 
-        {/* Right large tree */}
+        {/* Right tree - shorter, starts lower */}
         <g fill={theme.forest.treeDark} className="transition-all duration-1000">
-            <path d="M1470,900 L1470,450 Q1445,490 1410,460 Q1430,465 1395,505 Q1420,495 1380,545 Q1405,530 1365,585 Q1390,570 1350,625 Q1375,610 1335,670 Q1360,655 1320,715 Q1345,700 1305,770 Q1330,755 1290,830 Q1315,815 1275,900 L1275,900 Z" />
-            <path d="M1410,460 Q1465,430 1490,405 Q1470,420 1495,395 Q1460,435 1410,460 Z" opacity="0.9" />
-            <path d="M1395,505 Q1455,470 1480,445 Q1455,465 1485,435 Q1450,480 1395,505 Z" opacity="0.9" />
+            <path d="M1470,900 L1470,600 Q1445,630 1420,610 Q1435,620 1400,660 Q1420,650 1380,700 Q1400,690 1360,740 Q1380,730 1340,780 Q1360,770 1320,820 Q1340,810 1305,860 L1305,900 Z" />
+            <path d="M1420,610 Q1460,590 1480,575 Q1465,585 1485,570 Q1455,600 1420,610 Z" opacity="0.9" />
         </g>
 
         {/* Small foreground bushes */}
         <g fill={theme.forest.treeDark} className="transition-all duration-1000" opacity="0.7">
-            <ellipse cx="250" cy="750" rx="40" ry="25" />
-            <ellipse cx="600" cy="730" rx="35" ry="20" />
-            <ellipse cx="1000" cy="720" rx="45" ry="22" />
+            <ellipse cx="250" cy="800" rx="35" ry="20" />
+            <ellipse cx="600" cy="780" rx="30" ry="18" />
+            <ellipse cx="1000" cy="770" rx="40" ry="20" />
         </g>
     </svg>
 ));
@@ -581,8 +659,8 @@ const SeasonControls = memo(({ current, onChange }: { current: Season, onChange:
     );
 });
 
-// Stars component with seeded randomness for consistency
-const Stars = memo(({ theme, scrollProgress }: { theme: ThemeColors, scrollProgress: number }) => {
+// Stars component with seeded randomness - static version for CSS-driven transforms
+const StarsStatic = memo(({ theme }: { theme: ThemeColors }) => {
     const stars = useMemo(() => {
         return [...Array(100)].map((_, i) => ({
             id: i,
@@ -596,14 +674,7 @@ const Stars = memo(({ theme, scrollProgress }: { theme: ThemeColors, scrollProgr
     }, []);
 
     return (
-        <div
-            className="absolute inset-0 overflow-hidden transition-opacity duration-1000"
-            style={{
-                transform: `scale(${1 + scrollProgress * 1.5})`,
-                opacity: Math.max(0, (1 - scrollProgress * 1.2) * theme.stars.intensity),
-                transformOrigin: 'center 40%',
-            }}
-        >
+        <>
             {stars.map((star) => (
                 <div
                     key={star.id}
@@ -621,17 +692,15 @@ const Stars = memo(({ theme, scrollProgress }: { theme: ThemeColors, scrollProgr
                     }}
                 />
             ))}
-        </div>
+        </>
     );
 });
 
 export default function ParallaxPortfolio() {
-    const [scrollY, setScrollY] = useState(0);
     const [windowHeight, setWindowHeight] = useState(800);
-    const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
     const [season, setSeason] = useState<Season>('winter');
     const containerRef = useRef<HTMLDivElement>(null);
-    const tickingRef = useRef(false);
+    const rootRef = useRef<HTMLDivElement>(null);
 
     const theme = SEASON_THEMES[season];
 
@@ -644,16 +713,12 @@ export default function ParallaxPortfolio() {
 
     useEffect(() => {
         const container = containerRef.current;
-        if (!container) return;
+        const root = rootRef.current;
+        if (!container || !root) return;
 
         const handleScroll = () => {
-            if (!tickingRef.current) {
-                requestAnimationFrame(() => {
-                    setScrollY(container.scrollTop);
-                    tickingRef.current = false;
-                });
-                tickingRef.current = true;
-            }
+            const scrollY = container.scrollTop;
+            root.style.setProperty('--scroll-y', `${scrollY}`);
         };
 
         container.addEventListener('scroll', handleScroll, { passive: true });
@@ -661,29 +726,21 @@ export default function ParallaxPortfolio() {
     }, []);
 
     const handleMouseMove = useCallback((e: React.MouseEvent) => {
-        const x = (e.clientX / window.innerWidth - 0.5) * 2;
-        const y = (e.clientY / window.innerHeight - 0.5) * 2;
-        setMousePos({ x: x * 10, y: y * 5 });
+        const root = rootRef.current;
+        if (!root) return;
+        const x = (e.clientX / window.innerWidth - 0.5) * 20;
+        const y = (e.clientY / window.innerHeight - 0.5) * 10;
+        root.style.setProperty('--mouse-x', `${x}`);
+        root.style.setProperty('--mouse-y', `${y}`);
     }, []);
 
     const totalHeight = windowHeight * 4;
-    const scrollProgress = scrollY / (totalHeight - windowHeight);
-    const heroOpacity = Math.max(0, 1 - scrollY / (windowHeight * 0.6));
-    const heroScale = 1 + scrollY * 0.00012;
-
-    const layers = useMemo(() => [
-        { speed: 0.02, mouseMultiplier: 0.12 },
-        { speed: 0.06, mouseMultiplier: 0.18 },
-        { speed: 0.1, mouseMultiplier: 0.25 },
-        { speed: 0.16, mouseMultiplier: 0.35 },
-        { speed: 0.28, mouseMultiplier: 0.5 },
-        { speed: 0.42, mouseMultiplier: 0.65 },
-        { speed: 0.58, mouseMultiplier: 0.85 },
-    ], []);
+    const layerComponents = useMemo(() => [Moon, MountainsFar, MountainsMidFar, MountainsMid, ForestHills, ForestDense, Foreground], []);
 
     return (
         <div
-            className="w-full h-screen overflow-hidden transition-colors duration-1000"
+            ref={rootRef}
+            className="w-full h-screen overflow-hidden transition-colors duration-1000 parallax-root"
             style={{ backgroundColor: theme.details.background }}
         >
             <style>{`
@@ -728,6 +785,45 @@ export default function ParallaxPortfolio() {
           transform: translateZ(0);
           backface-visibility: hidden;
         }
+        .parallax-root {
+          --scroll-y: 0;
+          --mouse-x: 0;
+          --mouse-y: 0;
+        }
+        /* Mountains rise from behind foreground as you scroll */
+        /* Layer 0 = Moon, no offset - always visible */
+        /* Layers 1-5 = Mountains, start VERY compressed/hidden, rise dramatically */
+        /* Layer 6 = Foreground, stays fixed at bottom */
+        .parallax-layer-0 { transform: translate3d(calc(var(--mouse-x) * 0.05px), calc(var(--scroll-y) * -0.01px + var(--mouse-y) * 0.02px), 0); }
+        .parallax-layer-1 { transform: translate3d(calc(var(--mouse-x) * 0.08px), calc(500px - var(--scroll-y) * 0.18px + var(--mouse-y) * 0.03px), 0); }
+        .parallax-layer-2 { transform: translate3d(calc(var(--mouse-x) * 0.12px), calc(480px - var(--scroll-y) * 0.16px + var(--mouse-y) * 0.04px), 0); }
+        .parallax-layer-3 { transform: translate3d(calc(var(--mouse-x) * 0.16px), calc(450px - var(--scroll-y) * 0.14px + var(--mouse-y) * 0.05px), 0); }
+        .parallax-layer-4 { transform: translate3d(calc(var(--mouse-x) * 0.22px), calc(400px - var(--scroll-y) * 0.12px + var(--mouse-y) * 0.07px), 0); }
+        .parallax-layer-5 { transform: translate3d(calc(var(--mouse-x) * 0.28px), calc(350px - var(--scroll-y) * 0.10px + var(--mouse-y) * 0.09px), 0); }
+        .parallax-layer-6 { transform: translate3d(calc(var(--mouse-x) * 0.35px), calc(var(--mouse-y) * 0.11px), 0); }
+        .parallax-mist { transform: translate3d(0, calc(400px - var(--scroll-y) * 0.12px), 0); }
+        .parallax-hero {
+          opacity: clamp(0, calc(1 - var(--scroll-y) / (${windowHeight} * 0.8)), 1);
+          transform: translateY(calc(var(--scroll-y) * 0.3px));
+        }
+        .parallax-hero-scale {
+          transform: translateZ(0);
+          transform-origin: center 60%;
+        }
+        .parallax-stars {
+          transform: translateY(calc(var(--scroll-y) * -0.05px));
+          opacity: clamp(0, calc((1 - var(--scroll-y) / (${windowHeight} * 1.5)) * ${theme.stars.intensity}), 1);
+        }
+        .parallax-aurora {
+          opacity: clamp(0, calc(1 - var(--scroll-y) / (${windowHeight} * 1.2)), 1);
+        }
+        .scroll-blocked {
+          overflow: hidden !important;
+          touch-action: none !important;
+        }
+        .parallax-scroll-indicator {
+          opacity: clamp(0, calc((1 - var(--scroll-y) / (${windowHeight} * 0.6)) * 0.8), 0.8);
+        }
       `}</style>
 
             <SeasonControls current={season} onChange={setSeason} />
@@ -738,69 +834,40 @@ export default function ParallaxPortfolio() {
                 className="w-full h-full overflow-y-auto overflow-x-hidden smooth-scroll hide-scrollbar"
                 onMouseMove={handleMouseMove}
             >
-                <div
-                    className="fixed inset-0 overflow-hidden pointer-events-none"
-                    style={{
-                        transform: `scale(${heroScale})`,
-                        transformOrigin: 'center 60%'
-                    }}
-                >
+                <div className="fixed inset-0 overflow-x-hidden overflow-y-visible pointer-events-none parallax-hero-scale">
                     {/* Sky gradient base */}
                     <div className="absolute inset-0 gpu-layer">
                         <SkyGradient theme={theme} />
                     </div>
 
-                    {/* Stars with seeded positions */}
-                    <Stars theme={theme} scrollProgress={scrollProgress} />
+                    {/* Stars with CSS-driven transforms */}
+                    <div className="absolute inset-0 overflow-hidden transition-opacity duration-1000 parallax-stars">
+                        <StarsStatic theme={theme} />
+                    </div>
 
                     {/* Aurora effect (winter only) */}
-                    <div className="absolute inset-0 gpu-layer" style={{ opacity: Math.max(0, 1 - scrollProgress * 2) }}>
+                    <div className="absolute inset-0 gpu-layer parallax-aurora">
                         <Aurora theme={theme} />
                     </div>
 
-                    {/* Parallax layers */}
-                    {[
-                        Moon, MountainsFar, MountainsMidFar, MountainsMid, ForestHills, ForestDense, Foreground
-                    ].map((LayerComponent, index) => {
-                        const { speed, mouseMultiplier } = layers[index];
-                        const yOffset = scrollY * speed;
-                        const mouseX = mousePos.x * mouseMultiplier;
-                        const mouseY = mousePos.y * mouseMultiplier * 0.4;
-
-                        return (
-                            <div
-                                key={index}
-                                className="absolute inset-0 will-change-transform gpu-layer"
-                                style={{
-                                    transform: `translate3d(${mouseX}px, ${yOffset + mouseY}px, 0)`,
-                                    transition: 'transform 0.1s ease-out',
-                                }}
-                            >
-                                <LayerComponent theme={theme} />
-                            </div>
-                        );
-                    })}
+                    {/* Parallax layers - CSS driven */}
+                    {layerComponents.map((LayerComponent, index) => (
+                        <div
+                            key={index}
+                            className={`absolute inset-0 will-change-transform gpu-layer parallax-layer-${index}`}
+                        >
+                            <LayerComponent theme={theme} />
+                        </div>
+                    ))}
 
                     {/* Atmospheric mist layer */}
-                    <div
-                        className="absolute inset-0 gpu-layer pointer-events-none"
-                        style={{
-                            transform: `translate3d(0, ${scrollY * 0.3}px, 0)`,
-                            opacity: 0.7
-                        }}
-                    >
+                    <div className="absolute inset-0 gpu-layer pointer-events-none parallax-mist" style={{ opacity: 0.7 }}>
                         <MistLayer theme={theme} />
                     </div>
                 </div>
 
                 <div style={{ height: totalHeight, position: 'relative' }}>
-                    <div
-                        className="fixed inset-0 flex flex-col items-center justify-center text-center px-6 z-30 pointer-events-none transition-colors duration-1000"
-                        style={{
-                            opacity: heroOpacity,
-                            transform: `translateY(${scrollY * 0.35}px) scale(${1 - scrollProgress * 0.1})`
-                        }}
-                    >
+                    <div className="fixed inset-0 flex flex-col items-center justify-center text-center px-6 z-30 pointer-events-none transition-colors duration-1000 parallax-hero">
                         <h1
                             className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl xl:text-9xl font-extralight mb-6 tracking-tight pointer-events-auto transition-colors duration-1000"
                             style={{
@@ -819,14 +886,11 @@ export default function ParallaxPortfolio() {
                                 textShadow: '0 2px 20px rgba(0,0,0,0.3)',
                             }}
                         >
-                            Full-Stack Developer • AI Enthusiast
+                            Full-Stack Developer 
                         </p>
                     </div>
 
-                    <div
-                        className="fixed bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-3 z-50 transition-opacity duration-500"
-                        style={{ opacity: heroOpacity * 0.8 }}
-                    >
+                    <div className="fixed bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-3 z-50 transition-opacity duration-500 parallax-scroll-indicator">
                         <span className="text-[10px] tracking-[0.4em] uppercase font-light transition-colors duration-1000" style={{ color: theme.details.textSub }}>
                             Scroll
                         </span>
