@@ -741,7 +741,7 @@ export default function ParallaxPortfolio() {
         root.style.setProperty('--mouse-y', `${y}`);
     }, []);
 
-    const totalHeight = windowHeight * 4;
+    const totalHeight = windowHeight * 7;
     const layerComponents = useMemo(() => [Moon, MountainsFar, MountainsMidFar, MountainsMid, ForestHills, ForestDense, Foreground], []);
 
     return (
@@ -799,16 +799,16 @@ export default function ParallaxPortfolio() {
         }
         /* Mountains rise from behind foreground as you scroll */
         /* Layer 0 = Moon, no offset - always visible */
-        /* Layers 1-5 = Mountains, start VERY compressed/hidden, rise dramatically */
+        /* Layers 1-5 = Mountains, start separated, rise with reduced multipliers */
         /* Layer 6 = Foreground, stays fixed at bottom */
-        .parallax-layer-0 { transform: translate3d(calc(var(--mouse-x) * 0.05px), calc(var(--scroll-y) * -0.01px + var(--mouse-y) * 0.02px), 0); }
-        .parallax-layer-1 { transform: translate3d(calc(var(--mouse-x) * 0.08px), calc(500px - var(--scroll-y) * 0.18px + var(--mouse-y) * 0.03px), 0); }
-        .parallax-layer-2 { transform: translate3d(calc(var(--mouse-x) * 0.12px), calc(480px - var(--scroll-y) * 0.16px + var(--mouse-y) * 0.04px), 0); }
-        .parallax-layer-3 { transform: translate3d(calc(var(--mouse-x) * 0.16px), calc(450px - var(--scroll-y) * 0.14px + var(--mouse-y) * 0.05px), 0); }
-        .parallax-layer-4 { transform: translate3d(calc(var(--mouse-x) * 0.22px), calc(400px - var(--scroll-y) * 0.12px + var(--mouse-y) * 0.07px), 0); }
-        .parallax-layer-5 { transform: translate3d(calc(var(--mouse-x) * 0.28px), calc(350px - var(--scroll-y) * 0.10px + var(--mouse-y) * 0.09px), 0); }
+        .parallax-layer-0 { transform: translate3d(calc(var(--mouse-x) * 0.05px), calc(var(--scroll-y) * -0.005px + var(--mouse-y) * 0.02px), 0); }
+        .parallax-layer-1 { transform: translate3d(calc(var(--mouse-x) * 0.08px), calc(500px - var(--scroll-y) * 0.08px + var(--mouse-y) * 0.03px), 0); }
+        .parallax-layer-2 { transform: translate3d(calc(var(--mouse-x) * 0.12px), calc(480px - var(--scroll-y) * 0.07px + var(--mouse-y) * 0.04px), 0); }
+        .parallax-layer-3 { transform: translate3d(calc(var(--mouse-x) * 0.16px), calc(450px - var(--scroll-y) * 0.06px + var(--mouse-y) * 0.05px), 0); }
+        .parallax-layer-4 { transform: translate3d(calc(var(--mouse-x) * 0.22px), calc(400px - var(--scroll-y) * 0.05px + var(--mouse-y) * 0.07px), 0); }
+        .parallax-layer-5 { transform: translate3d(calc(var(--mouse-x) * 0.28px), calc(350px - var(--scroll-y) * 0.04px + var(--mouse-y) * 0.09px), 0); }
         .parallax-layer-6 { transform: translate3d(calc(var(--mouse-x) * 0.35px), calc(var(--mouse-y) * 0.11px), 0); }
-        .parallax-mist { transform: translate3d(0, calc(400px - var(--scroll-y) * 0.12px), 0); }
+        .parallax-mist { transform: translate3d(0, calc(400px - var(--scroll-y) * 0.05px), 0); }
         .parallax-hero {
           opacity: clamp(0, calc(1 - var(--scroll-y) / (${windowHeight} * 0.8)), 1);
           transform: translateY(calc(var(--scroll-y) * 0.3px));
@@ -832,18 +832,37 @@ export default function ParallaxPortfolio() {
           opacity: clamp(0, calc((1 - var(--scroll-y) / (${windowHeight} * 0.6)) * 0.8), 0.8);
         }
         /* Section 1 (About): fades in after title fades, then fades out */
+        /* STRICT SEQUENTIAL TIMING: Gap of 0.4h between sections */
+        
+        /* Section 1 (About): Starts at 1.0h, Ends at 2.0h */
         .parallax-section-1 {
-          --fade-in: clamp(0, calc((var(--scroll-y) - ${windowHeight * 0.5}) / ${windowHeight * 0.4}), 1);
-          --fade-out: clamp(0, calc(1 - (var(--scroll-y) - ${windowHeight * 1.4}) / ${windowHeight * 0.4}), 1);
+          --fade-in: clamp(0, calc((var(--scroll-y) - ${windowHeight * 1.0}) / ${windowHeight * 0.3}), 1);
+          --fade-out: clamp(0, calc(1 - (var(--scroll-y) - ${windowHeight * 1.7}) / ${windowHeight * 0.3}), 1);
           opacity: min(var(--fade-in), var(--fade-out));
-          transform: translateY(calc((var(--scroll-y) - ${windowHeight * 0.8}) * 0.25px));
+          transform: translateY(calc((var(--scroll-y) - ${windowHeight * 1.2}) * 0.4px));
         }
-        /* Section 2 (Featured Work): fades in after section 1, then fades out */
+
+        /* Section 2 (Featured): Starts at 2.4h, Ends at 3.4h */
         .parallax-section-2 {
-          --fade-in-2: clamp(0, calc((var(--scroll-y) - ${windowHeight * 1.6}) / ${windowHeight * 0.4}), 1);
-          --fade-out-2: clamp(0, calc(1 - (var(--scroll-y) - ${windowHeight * 2.5}) / ${windowHeight * 0.4}), 1);
+          --fade-in-2: clamp(0, calc((var(--scroll-y) - ${windowHeight * 2.4}) / ${windowHeight * 0.3}), 1);
+          --fade-out-2: clamp(0, calc(1 - (var(--scroll-y) - ${windowHeight * 3.1}) / ${windowHeight * 0.3}), 1);
           opacity: min(var(--fade-in-2), var(--fade-out-2));
-          transform: translateY(calc((var(--scroll-y) - ${windowHeight * 1.8}) * 0.25px));
+          transform: translateY(calc((var(--scroll-y) - ${windowHeight * 2.6}) * 0.4px));
+        }
+
+        /* Section 3 (Contact): Starts at 3.8h, Ends at 4.8h */
+        .parallax-section-3 {
+          --fade-in-3: clamp(0, calc((var(--scroll-y) - ${windowHeight * 3.8}) / ${windowHeight * 0.3}), 1);
+          --fade-out-3: clamp(0, calc(1 - (var(--scroll-y) - ${windowHeight * 4.5}) / ${windowHeight * 0.3}), 1);
+          opacity: min(var(--fade-in-3), var(--fade-out-3));
+          transform: translateY(calc((var(--scroll-y) - ${windowHeight * 4.0}) * 0.4px));
+        }
+
+        /* Section 4 (Footer): Starts at 5.2h */
+        .parallax-section-4 {
+          --fade-in-4: clamp(0, calc((var(--scroll-y) - ${windowHeight * 5.2}) / ${windowHeight * 0.3}), 1);
+          opacity: var(--fade-in-4);
+          transform: translateY(calc((var(--scroll-y) - ${windowHeight * 5.4}) * 0.4px));
         }
       `}</style>
 
@@ -920,9 +939,9 @@ export default function ParallaxPortfolio() {
                         </div>
                     </div>
 
-                    {/* About Me section - appears after title fades, then fades out */}
+                    {/* About Me section */}
                     <div
-                        className="fixed inset-0 flex items-center justify-center z-30 pointer-events-none parallax-section-1"
+                        className="fixed inset-0 flex items-start justify-center pt-[25vh] z-30 pointer-events-none parallax-section-1"
                     >
                         <div className="max-w-3xl text-center px-6">
                             <h2 className="text-4xl font-light mb-8 transition-colors duration-1000" style={{ color: theme.details.text }}>About Me</h2>
@@ -932,9 +951,9 @@ export default function ParallaxPortfolio() {
                         </div>
                     </div>
 
-                    {/* Featured Work section - appears after About fades */}
+                    {/* Featured Work section */}
                     <div
-                        className="fixed inset-0 flex items-center justify-center z-30 pointer-events-none parallax-section-2"
+                        className="fixed inset-0 flex items-start justify-center pt-[25vh] z-30 pointer-events-none parallax-section-2"
                     >
                         <div className="max-w-3xl text-center px-6">
                             <h2 className="text-4xl font-light mb-8 transition-colors duration-1000" style={{ color: theme.details.text }}>Featured Work</h2>
@@ -944,13 +963,30 @@ export default function ParallaxPortfolio() {
                         </div>
                     </div>
 
-                    {/* Footer at the very end */}
-                    <div className="relative z-40" style={{ marginTop: windowHeight * 3.5 }}>
-                        <footer className="py-16 text-center">
-                            <p className="text-xs tracking-widest uppercase transition-colors duration-1000" style={{ color: theme.details.textSub }}>
-                                © 2025 Pramish Sihali
+                    {/* Contact Section */}
+                    <div
+                        className="fixed inset-0 flex items-start justify-center pt-[25vh] z-30 pointer-events-none parallax-section-3"
+                    >
+                        <div className="max-w-3xl text-center px-6">
+                            <h2 className="text-4xl font-light mb-8 transition-colors duration-1000" style={{ color: theme.details.text }}>Get in Touch</h2>
+                            <p className="text-lg leading-relaxed mb-8 transition-colors duration-1000" style={{ color: theme.details.textSub }}>
+                                Interested in collaborating or have a project in mind? Let's build something extraordinary together.
                             </p>
-                        </footer>
+                            <div className="flex gap-6 justify-center">
+                                <span className="text-sm tracking-widest uppercase border-b border-transparent hover:border-current transition-all duration-300 cursor-pointer pointer-events-auto" style={{ color: theme.details.text }}>Email</span>
+                                <span className="text-sm tracking-widest uppercase border-b border-transparent hover:border-current transition-all duration-300 cursor-pointer pointer-events-auto" style={{ color: theme.details.text }}>LinkedIn</span>
+                                <span className="text-sm tracking-widest uppercase border-b border-transparent hover:border-current transition-all duration-300 cursor-pointer pointer-events-auto" style={{ color: theme.details.text }}>GitHub</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Footer */}
+                    <div
+                        className="fixed inset-0 flex items-end justify-center pb-8 z-30 pointer-events-none parallax-section-4"
+                    >
+                        <p className="text-xs tracking-widest uppercase transition-colors duration-1000" style={{ color: theme.details.textSub }}>
+                            © 2025 Pramish Sihali
+                        </p>
                     </div>
                 </div>
             </div>
