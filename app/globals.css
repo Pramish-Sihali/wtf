@@ -125,3 +125,160 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* ============================================
+   PARALLAX PORTFOLIO ANIMATIONS & STYLES
+   ============================================ */
+
+/* Particle Animations */
+@keyframes fallDown {
+  0% { transform: translateY(-10px) translateX(0) rotate(0deg); }
+  100% { transform: translateY(100vh) translateX(var(--drift, 0)) rotate(360deg); }
+}
+
+@keyframes floatUp {
+  0% { transform: translateY(110vh) translateX(0); opacity: 0; }
+  15% { opacity: 0.8; }
+  85% { opacity: 0.8; }
+  100% { transform: translateY(-10vh) translateX(var(--drift, 0)); opacity: 0; }
+}
+
+@keyframes drift {
+  0%, 100% { margin-left: 0; }
+  50% { margin-left: 12px; }
+}
+
+@keyframes twinkle {
+  0%, 100% { opacity: 0.4; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.15); }
+}
+
+@keyframes auroraPulse {
+  0%, 100% { opacity: 0.3; transform: scaleX(1) translateY(0); }
+  25% { opacity: 0.5; transform: scaleX(1.1) translateY(-5px); }
+  50% { opacity: 0.4; transform: scaleX(0.95) translateY(5px); }
+  75% { opacity: 0.6; transform: scaleX(1.05) translateY(-3px); }
+}
+
+@keyframes scrollPulse {
+  0%, 100% { transform: translateX(-50%) translateY(0); opacity: 0.7; }
+  50% { transform: translateX(-50%) translateY(6px); opacity: 0.25; }
+}
+
+.animate-scrollPulse {
+  animation: scrollPulse 2s ease-in-out infinite;
+}
+
+/* Scroll Behavior */
+.smooth-scroll {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+.hide-scrollbar::-webkit-scrollbar { display: none; }
+.hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* GPU Acceleration */
+.gpu-layer {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* Parallax Root CSS Custom Properties */
+.parallax-root {
+  --scroll-y: 0;
+  --l0-scroll: 0;
+  --l1-scroll: 0;
+  --l2-scroll: 0;
+  --l3-scroll: 0;
+  --l4-scroll: 0;
+  --l5-scroll: 0;
+  --mouse-x: 0;
+  --mouse-y: 0;
+  --window-height: 800px;
+  --stars-intensity: 1;
+}
+
+/* Parallax Layer Transforms - Mountains rise sequentially */
+.parallax-layer-0 {
+  transform: translate3d(calc(var(--mouse-x) * 0.05px), calc(var(--l0-scroll) * -0.02px + var(--mouse-y) * 0.02px), 0);
+}
+.parallax-layer-1 {
+  transform: translate3d(calc(var(--mouse-x) * 0.08px), calc(500px - var(--l1-scroll) * 0.40px + var(--mouse-y) * 0.03px), 0);
+}
+.parallax-layer-2 {
+  transform: translate3d(calc(var(--mouse-x) * 0.12px), calc(450px - var(--l2-scroll) * 0.38px + var(--mouse-y) * 0.04px), 0);
+}
+.parallax-layer-3 {
+  transform: translate3d(calc(var(--mouse-x) * 0.16px), calc(400px - var(--l3-scroll) * 0.35px + var(--mouse-y) * 0.05px), 0);
+}
+.parallax-layer-4 {
+  transform: translate3d(calc(var(--mouse-x) * 0.22px), calc(350px - var(--l4-scroll) * 0.32px + var(--mouse-y) * 0.07px), 0);
+}
+.parallax-layer-5 {
+  transform: translate3d(calc(var(--mouse-x) * 0.28px), calc(300px - var(--l5-scroll) * 0.30px + var(--mouse-y) * 0.09px), 0);
+}
+.parallax-layer-6 {
+  transform: translate3d(calc(var(--mouse-x) * 0.35px), calc(var(--mouse-y) * 0.11px), 0);
+}
+
+/* Mist rises with mid-range layer 3 */
+.parallax-mist {
+  transform: translate3d(0, calc(400px - var(--l3-scroll) * 0.35px), 0);
+}
+
+/* Hero Section Parallax */
+.parallax-hero {
+  opacity: clamp(0, calc(1 - var(--scroll-y) / (var(--window-height) * 0.8)), 1);
+  transform: translateY(calc(var(--scroll-y) * 0.3px));
+}
+
+.parallax-hero-scale {
+  transform: translateZ(0);
+  transform-origin: center 60%;
+}
+
+/* Stars Parallax */
+.parallax-stars {
+  transform: translateY(calc(var(--scroll-y) * -0.05px));
+  opacity: clamp(0, calc((1 - var(--scroll-y) / (var(--window-height) * 1.5)) * var(--stars-intensity)), 1);
+}
+
+/* Aurora Parallax */
+.parallax-aurora {
+  opacity: clamp(0, calc(1 - var(--scroll-y) / (var(--window-height) * 1.2)), 1);
+}
+
+/* Scroll Indicator */
+.parallax-scroll-indicator {
+  opacity: clamp(0, calc((1 - var(--scroll-y) / (var(--window-height) * 0.6)) * 0.8), 0.8);
+}
+
+/* Content sections are now handled by React components with Intersection Observer */
+
+/* Accessibility: Skip to Content Link */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+.sr-only.focus\:not-sr-only:focus {
+  position: static;
+  width: auto;
+  height: auto;
+  padding: 0.5rem 1rem;
+  margin: 0;
+  overflow: visible;
+  clip: auto;
+  white-space: normal;
+  background: rgba(0, 0, 0, 0.9);
+  color: white;
+  z-index: 9999;
+}

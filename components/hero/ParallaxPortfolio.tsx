@@ -1,189 +1,14 @@
 'use client';
 
 import { useState, useEffect, useRef, useMemo, memo, useCallback } from 'react';
+import { IconBrandGithub } from '@tabler/icons-react';
 
-// ============================================
-// THEME CONFIGURATION
-// ============================================
-type Season = 'winter' | 'spring' | 'summer' | 'autumn';
-
-interface ThemeColors {
-    skyGradient: { stops: [string, string][] };
-    moon: { surface: string; inner: string; outer: string; crater: string; halo: string };
-    stars: { color: string; glow: string; intensity: number };
-    mountains: {
-        far: [string, string];
-        midFar: [string, string];
-        mid: [string, string];
-        snowCap: [string, string];
-        accent: string;
-    };
-    forest: {
-        hills: [string, string];
-        dense: [string, string];
-        foreground: [string, string];
-        treeDark: string;
-        treeLight: string;
-        accent: string;
-    };
-    atmosphere: {
-        mist: [string, string];
-        overlay: string;
-        aurora: boolean;
-        auroraColors?: string[];
-    };
-    details: {
-        text: string;
-        textSub: string;
-        background: string;
-    };
-}
-
-const SEASON_THEMES: Record<Season, ThemeColors> = {
-    winter: {
-        skyGradient: {
-            stops: [
-                ['#050510', '0%'], ['#0a0a18', '15%'], ['#0f0f22', '30%'],
-                ['#15152e', '45%'], ['#1e1e3d', '58%'], ['#2a2a4d', '70%'],
-                ['#3a3a5d', '82%'], ['#4a4a70', '92%'], ['#5a5a80', '100%']
-            ]
-        },
-        moon: {
-            surface: '#f5f0e5', inner: '#fff8ed', outer: '#e8e4dd', crater: '#c8c4bc', halo: 'rgba(200,210,255,0.15)'
-        },
-        stars: { color: '#ffffff', glow: 'rgba(200,220,255,0.5)', intensity: 1 },
-        mountains: {
-            far: ['#4a4a6a', '#5a5a7a'],
-            midFar: ['#3a3a55', '#454560'],
-            mid: ['#2a2a42', '#353550'],
-            snowCap: ['#ffffff', '#d8d8e8'],
-            accent: '#6a6a8a'
-        },
-        forest: {
-            hills: ['#1e1e35', '#252540'],
-            dense: ['#121225', '#181830'],
-            foreground: ['#0a0a15', '#0d0d1a'],
-            treeDark: '#050510',
-            treeLight: '#0d0d1a',
-            accent: '#2a2a45'
-        },
-        atmosphere: {
-            mist: ['rgba(180,190,220,0.08)', 'rgba(180,190,220,0)'],
-            overlay: 'rgba(100,120,180,0.03)',
-            aurora: true,
-            auroraColors: ['rgba(100,200,150,0.12)', 'rgba(80,150,200,0.1)', 'rgba(150,100,200,0.08)']
-        },
-        details: { text: '#ffffff', textSub: 'rgba(255,255,255,0.55)', background: '#050510' }
-    },
-    spring: {
-        skyGradient: {
-            stops: [
-                ['#1a1a2e', '0%'], ['#2d2d5a', '12%'], ['#4a3a6a', '25%'],
-                ['#6b4a7a', '38%'], ['#8b5a8a', '48%'], ['#c77b95', '60%'],
-                ['#e8a0aa', '72%'], ['#f5c4c8', '84%'], ['#ffdde1', '100%']
-            ]
-        },
-        moon: {
-            surface: '#fff0f5', inner: '#ffe8ef', outer: '#ffd0dd', crater: '#e8c0cc', halo: 'rgba(255,180,200,0.15)'
-        },
-        stars: { color: '#fff0f5', glow: 'rgba(255,200,220,0.5)', intensity: 0.5 },
-        mountains: {
-            far: ['#5a5a70', '#7a7a90'],
-            midFar: ['#4a4a60', '#6a6a80'],
-            mid: ['#3a3a50', '#5a5a70'],
-            snowCap: ['#ffffff', '#f0f0f8'],
-            accent: '#8a8a9a'
-        },
-        forest: {
-            hills: ['#3a7050', '#4a9060'],
-            dense: ['#2a5540', '#3a7550'],
-            foreground: ['#1a4030', '#2a5540'],
-            treeDark: '#153525',
-            treeLight: '#2a5540',
-            accent: '#5aaa70'
-        },
-        atmosphere: {
-            mist: ['rgba(255,192,203,0.15)', 'rgba(255,192,203,0)'],
-            overlay: 'rgba(255,182,193,0.08)',
-            aurora: false
-        },
-        details: { text: '#fff5f7', textSub: 'rgba(255,245,247,0.75)', background: '#1a1a28' }
-    },
-    summer: {
-        skyGradient: {
-            stops: [
-                ['#0a1820', '0%'], ['#152832', '20%'], ['#1a3545', '35%'],
-                ['#2a5060', '50%'], ['#4a8090', '68%'], ['#70a5b0', '82%'], ['#a0d0d8', '100%']
-            ]
-        },
-        moon: {
-            surface: '#fff8d8', inner: '#ffefb0', outer: '#ffe088', crater: '#e0d098', halo: 'rgba(255,230,150,0.15)'
-        },
-        stars: { color: '#ffffd8', glow: 'rgba(255,255,180,0.4)', intensity: 0.4 },
-        mountains: {
-            far: ['#2a3848', '#3a485a'],
-            midFar: ['#1a3020', '#2a4230'],
-            mid: ['#152818', '#203820'],
-            snowCap: ['rgba(255,255,255,0.25)', 'rgba(255,255,255,0.05)'],
-            accent: '#3a5848'
-        },
-        forest: {
-            hills: ['#183820', '#205028'],
-            dense: ['#0e2812', '#153518'],
-            foreground: ['#081810', '#0e2015'],
-            treeDark: '#040a05',
-            treeLight: '#0e2012',
-            accent: '#1a4020'
-        },
-        atmosphere: {
-            mist: ['rgba(150,200,180,0.05)', 'rgba(150,200,180,0)'],
-            overlay: 'rgba(100,180,160,0.02)',
-            aurora: false
-        },
-        details: { text: '#e8f5f0', textSub: 'rgba(232,245,240,0.75)', background: '#061010' }
-    },
-    autumn: {
-        skyGradient: {
-            stops: [
-                ['#180820', '0%'], ['#301030', '18%'], ['#501838', '35%'],
-                ['#802040', '50%'], ['#a84035', '65%'], ['#c86030', '80%'], ['#e89050', '100%']
-            ]
-        },
-        moon: {
-            surface: '#fff0e0', inner: '#ffd8b8', outer: '#ffb888', crater: '#d8b898', halo: 'rgba(255,180,120,0.15)'
-        },
-        stars: { color: '#ffd8a8', glow: 'rgba(255,160,80,0.4)', intensity: 0.7 },
-        mountains: {
-            far: ['#402020', '#583030'],
-            midFar: ['#351818', '#482020'],
-            mid: ['#2a1212', '#3a1818'],
-            snowCap: ['#ffc898', '#ff9868'],
-            accent: '#604030'
-        },
-        forest: {
-            hills: ['#381805', '#4a2508'],
-            dense: ['#280e02', '#381505'],
-            foreground: ['#180802', '#220c02'],
-            treeDark: '#0e0402',
-            treeLight: '#281008',
-            accent: '#4a2810'
-        },
-        atmosphere: {
-            mist: ['rgba(180,100,50,0.06)', 'rgba(180,100,50,0)'],
-            overlay: 'rgba(150,80,40,0.03)',
-            aurora: false
-        },
-        details: { text: '#ffe8d8', textSub: 'rgba(255,232,216,0.7)', background: '#120605' }
-    }
-};
-
-// ============================================
-// SEEDED RANDOM FOR CONSISTENT GENERATION
-// ============================================
-const seededRandom = (seed: number) => {
-    const x = Math.sin(seed * 9999) * 10000;
-    return x - Math.floor(x);
-};
+// Extracted modules for better maintainability
+import { Season, ThemeColors, SEASON_THEMES, SEASON_ICONS, SEASONS } from './config/seasonThemes';
+import { seededRandom } from '@/lib/seededRandom';
+import { useParallaxScroll, useMouseParallax, useWindowHeight } from './hooks/useParallaxScroll';
+import type { ParallaxCSSProperties, NavSection } from './types';
+import { AboutSection, WorkSection, ContactSection, FooterSection } from './sections/ContentSections';
 
 // ============================================
 // PARTICLE SYSTEM (Optimized)
@@ -204,7 +29,7 @@ const AtmosphericParticles = memo(function AtmosphericParticles({ season }: { se
         }));
     }, [season]);
 
-    const getParticleStyle = useCallback((p: typeof particles[0]) => {
+    const getParticleStyle = useCallback((p: typeof particles[0]): React.CSSProperties => {
         switch (season) {
             case 'winter':
                 return {
@@ -241,7 +66,10 @@ const AtmosphericParticles = memo(function AtmosphericParticles({ season }: { se
     const animation = season === 'summer' ? 'floatUp' : 'fallDown';
 
     return (
-        <div className="fixed inset-0 pointer-events-none z-[100] overflow-hidden will-change-transform">
+        <div
+            className="fixed inset-0 pointer-events-none z-[100] overflow-hidden will-change-transform"
+            aria-hidden="true"
+        >
             {particles.map((p) => (
                 <div
                     key={`${season}-${p.id}`}
@@ -255,8 +83,8 @@ const AtmosphericParticles = memo(function AtmosphericParticles({ season }: { se
                         filter: p.blur ? 'blur(0.5px)' : 'none',
                         animation: `${animation} ${p.duration}s linear infinite, drift ${p.duration * 0.6}s ease-in-out infinite`,
                         animationDelay: `${p.delay}s, ${p.delay}s`,
-                        ['--drift' as any]: `${p.drift}px`,
-                    }}
+                        '--drift': `${p.drift}px`,
+                    } as ParallaxCSSProperties}
                 />
             ))}
         </div>
@@ -269,8 +97,8 @@ const AtmosphericParticles = memo(function AtmosphericParticles({ season }: { se
 
 // Calculate moon phase (0-1) based on lunar cycle (~29.5 days)
 const getMoonPhase = () => {
-    const knownNewMoon = new Date('2024-01-11').getTime(); // Known new moon date
-    const lunarCycle = 29.53058867; // Days in lunar cycle
+    const knownNewMoon = new Date('2024-01-11').getTime();
+    const lunarCycle = 29.53058867;
     const now = Date.now();
     const daysSinceNew = (now - knownNewMoon) / (1000 * 60 * 60 * 24);
     return (daysSinceNew % lunarCycle) / lunarCycle;
@@ -279,21 +107,19 @@ const getMoonPhase = () => {
 const Moon = memo(({ theme }: { theme: ThemeColors }) => {
     const phase = useMemo(() => getMoonPhase(), []);
 
-    // Phase determines shadow position: 0=new, 0.25=first quarter, 0.5=full, 0.75=last quarter
     const isWaxing = phase < 0.5;
-    const illumination = phase < 0.5 ? phase * 2 : (1 - phase) * 2; // 0 to 1 to 0
+    const illumination = phase < 0.5 ? phase * 2 : (1 - phase) * 2;
 
-    // Calculate the shadow ellipse for the phase
     const shadowOffset = isWaxing
-        ? (1 - illumination) * 120 - 60  // Waxing: shadow moves left to right
-        : -(1 - illumination) * 120 + 60; // Waning: shadow moves right to left
+        ? (1 - illumination) * 120 - 60
+        : -(1 - illumination) * 120 + 60;
 
     const cx = 1100;
     const cy = 280;
     const r = 62;
 
     return (
-        <svg viewBox="0 0 1440 900" preserveAspectRatio="xMidYMax slice" className="w-full h-full">
+        <svg viewBox="0 0 1440 900" preserveAspectRatio="xMidYMax slice" className="w-full h-full pointer-events-none" aria-hidden="true">
             <defs>
                 <radialGradient id="moonSurface" cx="35%" cy="35%" r="65%">
                     <stop offset="0%" stopColor={theme.moon.inner} className="transition-all duration-1000" />
@@ -381,20 +207,40 @@ const Moon = memo(({ theme }: { theme: ThemeColors }) => {
 
             {/* Inner edge glow */}
             <circle cx={cx} cy={cy} r={r} fill="url(#moonInnerGlow)" />
+
+            {/* GitHub Icon Overlay */}
+            <foreignObject x={cx - r} y={cy - r} width={r * 2} height={r * 2} className="pointer-events-auto">
+                <a
+                    href="https://github.com/Pramish-Sihali"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full h-full flex items-center justify-center transition-all duration-500 hover:scale-110 group relative rounded-full"
+                    title="GitHub Profile"
+                    aria-label="Visit GitHub Profile"
+                >
+                    <div className="absolute inset-0 bg-white/10 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                    <IconBrandGithub
+                        size={32}
+                        stroke={1.5}
+                        className="relative z-10 transition-all duration-1000 group-hover:rotate-12"
+                        style={{ color: theme.moon.crater }}
+                        aria-hidden="true"
+                    />
+                </a>
+            </foreignObject>
         </svg>
     );
 });
 Moon.displayName = 'Moon';
 
 const SkyGradient = memo(({ theme }: { theme: ThemeColors }) => (
-    <svg viewBox="0 0 1440 900" preserveAspectRatio="xMidYMax slice" className="w-full h-full">
+    <svg viewBox="0 0 1440 900" preserveAspectRatio="xMidYMax slice" className="w-full h-full" aria-hidden="true">
         <defs>
             <linearGradient id="skyGrad" x1="0%" y1="0%" x2="0%" y2="100%">
                 {theme.skyGradient.stops.map((stop, i) => (
                     <stop key={i} offset={stop[1]} stopColor={stop[0]} className="transition-all duration-1000" />
                 ))}
             </linearGradient>
-            {/* Subtle noise texture overlay */}
             <filter id="skyNoise">
                 <feTurbulence type="fractalNoise" baseFrequency="0.7" numOctaves="3" result="noise" />
                 <feColorMatrix type="saturate" values="0" />
@@ -405,12 +251,13 @@ const SkyGradient = memo(({ theme }: { theme: ThemeColors }) => (
         <rect width="1440" height="900" fill={theme.atmosphere.overlay} className="transition-all duration-1000" />
     </svg>
 ));
+SkyGradient.displayName = 'SkyGradient';
 
 // Aurora effect for winter
 const Aurora = memo(({ theme }: { theme: ThemeColors }) => {
     if (!theme.atmosphere.aurora || !theme.atmosphere.auroraColors) return null;
     return (
-        <svg viewBox="0 0 1440 900" preserveAspectRatio="xMidYMax slice" className="w-full h-full">
+        <svg viewBox="0 0 1440 900" preserveAspectRatio="xMidYMax slice" className="w-full h-full" aria-hidden="true">
             <defs>
                 <linearGradient id="aurora1" x1="0%" y1="0%" x2="100%" y2="100%">
                     <stop offset="0%" stopColor={theme.atmosphere.auroraColors[0]} />
@@ -429,10 +276,11 @@ const Aurora = memo(({ theme }: { theme: ThemeColors }) => {
         </svg>
     );
 });
+Aurora.displayName = 'Aurora';
 
 // Mist layer that varies by season
 const MistLayer = memo(({ theme }: { theme: ThemeColors }) => (
-    <svg viewBox="0 0 1440 900" preserveAspectRatio="xMidYMax slice" className="w-full h-full">
+    <svg viewBox="0 0 1440 900" preserveAspectRatio="xMidYMax slice" className="w-full h-full" aria-hidden="true">
         <defs>
             <linearGradient id="mistGrad" x1="0%" y1="0%" x2="0%" y2="100%">
                 <stop offset="0%" stopColor={theme.atmosphere.mist[0]} className="transition-all duration-1000" />
@@ -447,22 +295,23 @@ const MistLayer = memo(({ theme }: { theme: ThemeColors }) => (
         <ellipse cx="1300" cy="620" rx="350" ry="90" fill="url(#mistGrad)" filter="url(#mistBlur)" />
     </svg>
 ));
+MistLayer.displayName = 'MistLayer';
 
 const MountainsFar = memo(({ theme }: { theme: ThemeColors }) => (
-    <svg viewBox="0 0 1440 900" preserveAspectRatio="xMidYMax slice" className="w-full h-full">
+    <svg viewBox="0 0 1440 900" preserveAspectRatio="xMidYMax slice" className="w-full h-full" aria-hidden="true">
         <defs>
             <linearGradient id="mtnFar" x1="0%" y1="0%" x2="0%" y2="100%">
                 <stop offset="0%" stopColor={theme.mountains.far[0]} stopOpacity="0.65" className="transition-all duration-1000" />
                 <stop offset="100%" stopColor={theme.mountains.far[1]} stopOpacity="0.45" className="transition-all duration-1000" />
             </linearGradient>
         </defs>
-        {/* Refined mountain silhouette with natural ridges */}
         <path fill="url(#mtnFar)" d="M0,900 L0,620 Q40,610 60,630 Q80,600 100,540 Q115,560 130,520 Q150,550 170,580 Q190,560 210,590 Q240,550 270,480 Q290,510 310,470 Q340,500 360,540 Q390,510 420,480 Q450,500 470,440 Q490,470 510,420 Q540,460 560,400 Q590,440 620,380 Q660,420 700,350 Q740,390 770,420 Q800,380 830,440 Q860,400 890,340 Q930,380 960,420 Q990,380 1020,320 Q1060,370 1100,300 Q1140,350 1180,280 Q1220,330 1260,360 Q1290,320 1320,280 Q1360,320 1400,350 Q1420,330 1440,360 L1440,900 Z" />
     </svg>
 ));
+MountainsFar.displayName = 'MountainsFar';
 
 const MountainsMidFar = memo(({ theme }: { theme: ThemeColors }) => (
-    <svg viewBox="0 0 1440 900" preserveAspectRatio="xMidYMax slice" className="w-full h-full">
+    <svg viewBox="0 0 1440 900" preserveAspectRatio="xMidYMax slice" className="w-full h-full" aria-hidden="true">
         <defs>
             <linearGradient id="mtnMidFar" x1="0%" y1="0%" x2="0%" y2="100%">
                 <stop offset="0%" stopColor={theme.mountains.midFar[0]} className="transition-all duration-1000" />
@@ -473,15 +322,14 @@ const MountainsMidFar = memo(({ theme }: { theme: ThemeColors }) => (
                 <stop offset="100%" stopColor="rgba(0,0,0,0.15)" />
             </linearGradient>
         </defs>
-        {/* Main range with varied peaks */}
         <path fill="url(#mtnMidFar)" d="M0,900 L0,560 Q30,550 50,580 Q70,540 90,500 Q110,530 130,480 Q160,510 180,450 Q210,490 240,420 Q280,470 310,400 Q350,450 380,380 Q420,430 460,350 Q510,410 550,320 Q600,380 640,290 Q690,360 730,400 Q770,360 810,300 Q860,360 900,280 Q950,340 990,260 Q1040,320 1080,240 Q1130,300 1170,220 Q1220,280 1260,200 Q1310,260 1350,280 Q1390,250 1440,220 L1440,900 Z" />
-        {/* Shadow side detail */}
         <path fill="url(#mtnMidFarShadow)" d="M460,350 Q490,380 510,410 L510,320 Q485,340 460,350 Z M900,280 Q930,310 950,340 L950,260 Q925,270 900,280 Z M1170,220 Q1200,250 1220,280 L1220,200 Q1195,210 1170,220 Z" opacity="0.4" />
     </svg>
 ));
+MountainsMidFar.displayName = 'MountainsMidFar';
 
 const MountainsMid = memo(({ theme }: { theme: ThemeColors }) => (
-    <svg viewBox="0 0 1440 900" preserveAspectRatio="xMidYMax slice" className="w-full h-full">
+    <svg viewBox="0 0 1440 900" preserveAspectRatio="xMidYMax slice" className="w-full h-full" aria-hidden="true">
         <defs>
             <linearGradient id="mtnMid" x1="0%" y1="0%" x2="0%" y2="100%">
                 <stop offset="0%" stopColor={theme.mountains.mid[0]} className="transition-all duration-1000" />
@@ -497,20 +345,17 @@ const MountainsMid = memo(({ theme }: { theme: ThemeColors }) => (
                 <stop offset="100%" stopColor="rgba(0,0,0,0.2)" />
             </linearGradient>
         </defs>
-        {/* Detailed main range */}
         <path fill="url(#mtnMid)" d="M0,900 L0,520 Q25,510 45,540 Q60,500 80,460 Q100,490 120,440 Q150,480 175,400 Q210,450 240,360 Q280,420 310,340 Q360,400 400,300 Q450,370 490,280 Q550,350 590,260 Q650,330 700,220 Q760,300 810,350 Q850,310 890,260 Q940,320 980,240 Q1030,300 1070,200 Q1120,270 1160,180 Q1210,250 1250,300 Q1290,260 1330,220 Q1380,270 1440,200 L1440,900 Z" />
-        {/* Ridge details */}
         <path fill={theme.mountains.accent} d="M700,220 Q720,240 740,280 Q760,260 780,300 L810,350 Q790,320 770,340 Q750,310 730,340 Q710,290 700,220 Z" opacity="0.3" className="transition-all duration-1000" />
-        {/* Refined snow caps with natural flow */}
         <path fill="url(#snowCap)" d="M240,360 Q230,380 225,400 Q240,395 250,405 Q260,390 275,410 L310,340 Q295,360 280,370 Q265,355 250,365 Q240,355 240,360 Z" />
         <path fill="url(#snowCap)" d="M490,280 Q480,300 475,330 Q490,325 500,340 Q510,320 525,345 L590,260 Q575,285 560,295 Q545,275 530,290 Q515,270 490,280 Z" />
         <path fill="url(#snowCap)" d="M700,220 Q685,250 680,280 Q695,275 710,295 Q720,270 740,300 L810,350 Q795,320 775,340 Q760,310 745,330 Q725,290 710,310 Q695,260 700,220 Z" />
         <path fill="url(#snowCap)" d="M980,240 Q965,270 960,300 Q975,295 990,315 Q1000,290 1020,320 L1070,200 Q1055,235 1040,250 Q1025,225 1010,245 Q995,220 980,240 Z" />
         <path fill="url(#snowCap)" d="M1160,180 Q1145,210 1140,245 Q1155,240 1170,265 Q1185,235 1205,270 L1250,300 Q1235,270 1215,290 Q1200,255 1185,280 Q1170,240 1160,180 Z" />
-        {/* Shadow sides */}
         <path fill="url(#mtnShadow)" d="M700,220 L680,280 L700,350 L810,350 L780,300 L750,280 L700,220 Z" opacity="0.25" />
     </svg>
 ));
+MountainsMid.displayName = 'MountainsMid';
 
 // Generate organic tree shapes
 const generateTree = (x: number, baseY: number, height: number, width: number, seed: number) => {
@@ -518,9 +363,8 @@ const generateTree = (x: number, baseY: number, height: number, width: number, s
     const w = width;
     const h = height;
 
-    // Create a more natural conifer shape with random variations
     const layers = 4 + Math.floor(r(1) * 2);
-    let path = `M${x + w * 0.5},${baseY - h}`; // Top point
+    let path = `M${x + w * 0.5},${baseY - h}`;
 
     for (let i = 0; i < layers; i++) {
         const progress = (i + 1) / layers;
@@ -549,17 +393,17 @@ const generateTree = (x: number, baseY: number, height: number, width: number, s
 };
 
 const ForestHills = memo(({ theme }: { theme: ThemeColors }) => (
-    <svg viewBox="0 0 1440 900" preserveAspectRatio="xMidYMax slice" className="w-full h-full">
+    <svg viewBox="0 0 1440 900" preserveAspectRatio="xMidYMax slice" className="w-full h-full" aria-hidden="true">
         <defs>
             <linearGradient id="forestHill" x1="0%" y1="0%" x2="0%" y2="100%">
                 <stop offset="0%" stopColor={theme.forest.hills[0]} className="transition-all duration-1000" />
                 <stop offset="100%" stopColor={theme.forest.hills[1]} className="transition-all duration-1000" />
             </linearGradient>
         </defs>
-        {/* Rolling hills with smooth curves */}
         <path fill="url(#forestHill)" d="M0,900 L0,540 Q50,530 100,550 Q150,520 200,500 Q260,530 320,480 Q380,510 440,450 Q520,500 600,440 Q680,480 760,420 Q840,460 920,400 Q1000,450 1080,380 Q1160,430 1240,370 Q1320,420 1400,380 Q1420,400 1440,420 L1440,900 Z" />
     </svg>
 ));
+ForestHills.displayName = 'ForestHills';
 
 const ForestDense = memo(({ theme }: { theme: ThemeColors }) => {
     const trees = useMemo(() => {
@@ -573,22 +417,19 @@ const ForestDense = memo(({ theme }: { theme: ThemeColors }) => {
     }, []);
 
     return (
-        <svg viewBox="0 0 1440 900" preserveAspectRatio="xMidYMax slice" className="w-full h-full">
+        <svg viewBox="0 0 1440 900" preserveAspectRatio="xMidYMax slice" className="w-full h-full" aria-hidden="true">
             <defs>
                 <linearGradient id="denseForest" x1="0%" y1="0%" x2="0%" y2="100%">
                     <stop offset="0%" stopColor={theme.forest.dense[0]} className="transition-all duration-1000" />
                     <stop offset="100%" stopColor={theme.forest.dense[1]} className="transition-all duration-1000" />
                 </linearGradient>
             </defs>
-            {/* Undulating forest floor */}
             <path fill="url(#denseForest)" d="M0,900 L0,650 Q60,640 120,660 Q180,630 240,610 Q320,640 400,590 Q480,630 560,570 Q660,620 760,550 Q860,600 960,530 Q1060,580 1160,520 Q1260,570 1360,510 Q1400,540 1440,550 L1440,900 Z" />
-            {/* Dense treeline with organic shapes */}
             <g fill={theme.forest.treeDark} className="transition-all duration-1000">
                 {trees.map((t, i) => (
                     <path key={i} d={generateTree(t.x, t.baseY, t.h, t.w, t.seed)} opacity={0.85 + seededRandom(i * 1.3) * 0.15} />
                 ))}
             </g>
-            {/* Accent trees for depth */}
             <g fill={theme.forest.accent} className="transition-all duration-1000" opacity="0.3">
                 {trees.filter((_, i) => i % 4 === 0).map((t, i) => (
                     <path key={i} d={generateTree(t.x + 3, t.baseY, t.h * 0.85, t.w * 0.8, t.seed + 100)} />
@@ -597,32 +438,28 @@ const ForestDense = memo(({ theme }: { theme: ThemeColors }) => {
         </svg>
     );
 });
+ForestDense.displayName = 'ForestDense';
 
 const Foreground = memo(({ theme }: { theme: ThemeColors }) => (
-    <svg viewBox="0 0 1440 900" preserveAspectRatio="xMidYMax slice" className="w-full h-full">
+    <svg viewBox="0 0 1440 900" preserveAspectRatio="xMidYMax slice" className="w-full h-full" aria-hidden="true">
         <defs>
             <linearGradient id="fgGround" x1="0%" y1="0%" x2="0%" y2="100%">
                 <stop offset="0%" stopColor={theme.forest.foreground[0]} className="transition-all duration-1000" />
                 <stop offset="100%" stopColor={theme.forest.foreground[1]} className="transition-all duration-1000" />
             </linearGradient>
         </defs>
-        {/* Smooth foreground terrain */}
         <path fill="url(#fgGround)" d="M0,900 L0,750 Q80,740 160,760 Q240,730 320,710 Q420,740 520,700 Q620,730 720,690 Q820,720 920,680 Q1020,710 1120,670 Q1220,700 1320,660 Q1380,690 1440,680 L1440,900 Z" />
 
-        {/* Left tree - fuller, extends to edge */}
+        {/* Left tree */}
         <g fill={theme.forest.treeDark} className="transition-all duration-1000">
-            {/* Main tree silhouette */}
             <path d="M-80,900 L-80,550 Q-50,580 -20,560 Q-40,570 0,600 Q-25,590 20,630 Q-10,620 40,660 Q5,650 55,695 Q25,685 70,730 Q40,720 85,765 Q55,755 100,800 Q70,790 115,840 Q85,830 130,875 Q100,865 145,900 Z" />
-            {/* Secondary branches for depth */}
             <path d="M-20,560 Q-70,530 -90,510 Q-65,525 -95,505 Q-55,545 -20,560 Z" opacity="0.85" />
             <path d="M0,600 Q-55,570 -80,550 Q-60,565 -85,545 Q-45,585 0,600 Z" opacity="0.8" />
         </g>
 
-        {/* Right tree - fuller, extends to edge */}
+        {/* Right tree */}
         <g fill={theme.forest.treeDark} className="transition-all duration-1000">
-            {/* Main tree silhouette */}
             <path d="M1520,900 L1520,530 Q1490,560 1460,545 Q1480,555 1440,590 Q1465,580 1420,625 Q1445,615 1400,660 Q1425,650 1380,700 Q1405,690 1355,740 Q1385,730 1330,785 Q1365,775 1310,830 Q1345,820 1295,875 Q1330,865 1280,900 Z" />
-            {/* Secondary branches for depth */}
             <path d="M1460,545 Q1510,515 1535,495 Q1515,510 1540,490 Q1500,530 1460,545 Z" opacity="0.85" />
             <path d="M1440,590 Q1495,555 1520,535 Q1500,550 1525,530 Q1485,575 1440,590 Z" opacity="0.8" />
         </g>
@@ -636,35 +473,36 @@ const Foreground = memo(({ theme }: { theme: ThemeColors }) => (
         </g>
     </svg>
 ));
+Foreground.displayName = 'Foreground';
 
 const SeasonControls = memo(({ current, onChange }: { current: Season, onChange: (s: Season) => void }) => {
-    const seasons: Season[] = ['winter', 'spring', 'summer', 'autumn'];
-    const icons: Record<Season, string> = {
-        winter: '❄',
-        spring: '❀',
-        summer: '☀',
-        autumn: '🍂'
-    };
-
     return (
-        <div className="fixed bottom-8 right-8 z-50 flex gap-1.5 bg-black/25 backdrop-blur-md p-1.5 rounded-full border border-white/10">
-            {seasons.map((s) => (
+        <div
+            className="fixed bottom-8 right-8 z-50 flex gap-1.5 bg-black/25 backdrop-blur-md p-1.5 rounded-full border border-white/10"
+            role="radiogroup"
+            aria-label="Select season theme"
+        >
+            {SEASONS.map((s) => (
                 <button
                     key={s}
                     onClick={() => onChange(s)}
+                    role="radio"
+                    aria-checked={current === s}
+                    aria-label={`${s} theme`}
                     className={`px-3 py-1.5 rounded-full text-xs uppercase tracking-wider transition-all duration-300 flex items-center gap-1.5 ${current === s
                         ? 'bg-white/90 text-black shadow-lg scale-105 font-medium'
                         : 'text-white/50 hover:text-white/80 hover:bg-white/10'
                         }`}
                     title={s}
                 >
-                    <span className="text-sm">{icons[s]}</span>
+                    <span className="text-sm" aria-hidden="true">{SEASON_ICONS[s]}</span>
                     <span className="hidden sm:inline">{s}</span>
                 </button>
             ))}
         </div>
     );
 });
+SeasonControls.displayName = 'SeasonControls';
 
 // Stars component with seeded randomness - static version for CSS-driven transforms
 const StarsStatic = memo(({ theme }: { theme: ThemeColors }) => {
@@ -686,6 +524,7 @@ const StarsStatic = memo(({ theme }: { theme: ThemeColors }) => {
                 <div
                     key={star.id}
                     className="absolute rounded-full"
+                    aria-hidden="true"
                     style={{
                         left: `${star.left}%`,
                         top: `${star.top}%`,
@@ -702,95 +541,57 @@ const StarsStatic = memo(({ theme }: { theme: ThemeColors }) => {
         </>
     );
 });
+StarsStatic.displayName = 'StarsStatic';
 
+// ============================================
+// MAIN COMPONENT
+// ============================================
 export default function ParallaxPortfolio() {
-    const [windowHeight, setWindowHeight] = useState(800);
     const [season, setSeason] = useState<Season>('winter');
-    const [activeSection, setActiveSection] = useState('home');
-    const [showScrollTop, setShowScrollTop] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
     const rootRef = useRef<HTMLDivElement>(null);
 
     const theme = SEASON_THEMES[season];
+    const windowHeight = useWindowHeight();
 
+    // Custom hooks for scroll and mouse handling (with RAF throttling)
+    const { activeSection, showScrollTop } = useParallaxScroll({
+        containerRef,
+        rootRef,
+        navSections: [
+            { id: 'home', offset: 0.8 },
+            { id: 'about', offset: 1.8 },
+            { id: 'work', offset: 2.8 },
+            { id: 'contact', offset: Infinity },
+        ],
+    });
+
+    const handleMouseMove = useMouseParallax(rootRef);
+
+    // Update CSS custom properties when windowHeight or theme changes
     useEffect(() => {
-        setWindowHeight(window.innerHeight);
-        const handleResize = () => setWindowHeight(window.innerHeight);
-        window.addEventListener('resize', handleResize, { passive: true });
-        return () => window.removeEventListener('resize', handleResize);
-    }, []);
-
-    useEffect(() => {
-        const container = containerRef.current;
-        const root = rootRef.current;
-        if (!container || !root) return;
-
-        const handleScroll = () => {
-            const scrollY = container.scrollTop;
-            const h = window.innerHeight;
-
-            // Central scroll variable
-            root.style.setProperty('--scroll-y', `${scrollY}`);
-
-            // STAGGERED LAYER LOGIC: Each layer has its own capped travel window
-            // Formula: Math.min(Math.max(scrollY - start, 0), duration)
-            const h1 = h;
-
-            const l0 = Math.min(scrollY, h * 3.5); // Moon/Overall
-            const l1 = Math.min(scrollY, h * 1.5); // Entire Mountain Range (Merged 1, 2, 3)
-            const l2 = l1;
-            const l3 = l1;
-            const l4 = Math.min(Math.max(scrollY - h * 1.5, 0), h * 1.5); // Hills start after mountains
-            const l5 = Math.min(Math.max(scrollY - h * 2.5, 0), h * 1.5); // Forest starts last
-
-            root.style.setProperty('--l0-scroll', `${l0}`);
-            root.style.setProperty('--l1-scroll', `${l1}`);
-            root.style.setProperty('--l2-scroll', `${l2}`);
-            root.style.setProperty('--l3-scroll', `${l3}`);
-            root.style.setProperty('--l4-scroll', `${l4}`);
-            root.style.setProperty('--l5-scroll', `${l5}`);
-
-            // Active Section Tracking
-            if (scrollY < h * 0.8) setActiveSection('home');
-            else if (scrollY < h * 2.0) setActiveSection('about');
-            else if (scrollY < h * 3.4) setActiveSection('work');
-            else setActiveSection('contact');
-
-            // Scroll Top Visibility
-            setShowScrollTop(scrollY > h * 0.5);
-        };
-
-        container.addEventListener('scroll', handleScroll, { passive: true });
-        // Initialize values on mount
-        handleScroll();
-
-        return () => container.removeEventListener('scroll', handleScroll);
-    }, []);
-
-    const handleMouseMove = useCallback((e: React.MouseEvent) => {
         const root = rootRef.current;
         if (!root) return;
-        const x = (e.clientX / window.innerWidth - 0.5) * 20;
-        const y = (e.clientY / window.innerHeight - 0.5) * 10;
-        root.style.setProperty('--mouse-y', `${y}`);
-    }, []);
+        root.style.setProperty('--window-height', `${windowHeight}px`);
+        root.style.setProperty('--stars-intensity', `${theme.stars.intensity}`);
+    }, [windowHeight, theme.stars.intensity]);
 
-    const scrollToSection = (multiplier: number) => {
+    const scrollToSection = useCallback((multiplier: number) => {
         if (!containerRef.current) return;
         containerRef.current.scrollTo({
             top: windowHeight * multiplier,
             behavior: 'smooth'
         });
-    };
+    }, [windowHeight]);
 
-    const navSections = [
+    const navSections: NavSection[] = useMemo(() => [
         { id: 'home', label: 'Home', offset: 0 },
-        { id: 'about', label: 'About', offset: 1.2 },
-        { id: 'work', label: 'Work', offset: 2.6 },
-        { id: 'contact', label: 'Contact', offset: 4.0 },
-    ];
+        { id: 'about', label: 'About', offset: 1.0 },
+        { id: 'work', label: 'Work', offset: 2.0 },
+        { id: 'contact', label: 'Contact', offset: 3.0 },
+    ], []);
 
-    const totalHeight = windowHeight * 7;
+    const totalHeight = windowHeight * 5;
     const layerComponents = useMemo(() => [Moon, MountainsFar, MountainsMidFar, MountainsMid, ForestHills, ForestDense, Foreground], []);
 
     return (
@@ -799,125 +600,13 @@ export default function ParallaxPortfolio() {
             className="w-full h-screen overflow-hidden transition-colors duration-1000 parallax-root"
             style={{ backgroundColor: theme.details.background }}
         >
-            <style>{`
-        @keyframes fallDown {
-          0% { transform: translateY(-10px) translateX(0) rotate(0deg); }
-          100% { transform: translateY(100vh) translateX(var(--drift, 0)) rotate(360deg); }
-        }
-        @keyframes floatUp {
-          0% { transform: translateY(110vh) translateX(0); opacity: 0; }
-          15% { opacity: 0.8; }
-          85% { opacity: 0.8; }
-          100% { transform: translateY(-10vh) translateX(var(--drift, 0)); opacity: 0; }
-        }
-        @keyframes drift {
-          0%, 100% { margin-left: 0; }
-          50% { margin-left: 12px; }
-        }
-        @keyframes twinkle {
-          0%, 100% { opacity: 0.4; transform: scale(1); }
-          50% { opacity: 1; transform: scale(1.15); }
-        }
-        @keyframes auroraPulse {
-          0%, 100% { opacity: 0.3; transform: scaleX(1) translateY(0); }
-          25% { opacity: 0.5; transform: scaleX(1.1) translateY(-5px); }
-          50% { opacity: 0.4; transform: scaleX(0.95) translateY(5px); }
-          75% { opacity: 0.6; transform: scaleX(1.05) translateY(-3px); }
-        }
-        @keyframes scrollPulse {
-          0%, 100% { transform: translateX(-50%) translateY(0); opacity: 0.7; }
-          50% { transform: translateX(-50%) translateY(6px); opacity: 0.25; }
-        }
-        .animate-scrollPulse {
-          animation: scrollPulse 2s ease-in-out infinite;
-        }
-        .smooth-scroll {
-          scroll-behavior: smooth;
-          -webkit-overflow-scrolling: touch;
-        }
-        .hide-scrollbar::-webkit-scrollbar { display: none; }
-        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        .gpu-layer {
-          transform: translateZ(0);
-          backface-visibility: hidden;
-        }
-        .parallax-root {
-          --scroll-y: 0;
-          --l0-scroll: 0;
-          --l1-scroll: 0;
-          --l2-scroll: 0;
-          --l3-scroll: 0;
-          --l4-scroll: 0;
-          --l5-scroll: 0;
-          --mouse-x: 0;
-          --mouse-y: 0;
-        }
-        /* Mountains rise sequentially: Layer 1 starts first, Layer 5 last */
-        .parallax-layer-0 { transform: translate3d(calc(var(--mouse-x) * 0.05px), calc(var(--l0-scroll) * -0.02px + var(--mouse-y) * 0.02px), 0); }
-        .parallax-layer-1 { transform: translate3d(calc(var(--mouse-x) * 0.08px), calc(500px - var(--l1-scroll) * 0.40px + var(--mouse-y) * 0.03px), 0); }
-        .parallax-layer-2 { transform: translate3d(calc(var(--mouse-x) * 0.12px), calc(450px - var(--l2-scroll) * 0.38px + var(--mouse-y) * 0.04px), 0); }
-        .parallax-layer-3 { transform: translate3d(calc(var(--mouse-x) * 0.16px), calc(400px - var(--l3-scroll) * 0.35px + var(--mouse-y) * 0.05px), 0); }
-        .parallax-layer-4 { transform: translate3d(calc(var(--mouse-x) * 0.22px), calc(350px - var(--l4-scroll) * 0.32px + var(--mouse-y) * 0.07px), 0); }
-        .parallax-layer-5 { transform: translate3d(calc(var(--mouse-x) * 0.28px), calc(300px - var(--l5-scroll) * 0.30px + var(--mouse-y) * 0.09px), 0); }
-        .parallax-layer-6 { transform: translate3d(calc(var(--mouse-x) * 0.35px), calc(var(--mouse-y) * 0.11px), 0); }
-        /* Mist rises with mid-range layer 3 */
-        .parallax-mist { transform: translate3d(0, calc(400px - var(--l3-scroll) * 0.35px), 0); }
-        .parallax-hero {
-          opacity: clamp(0, calc(1 - var(--scroll-y) / (${windowHeight} * 0.8)), 1);
-          transform: translateY(calc(var(--scroll-y) * 0.3px));
-        }
-        .parallax-hero-scale {
-          transform: translateZ(0);
-          transform-origin: center 60%;
-        }
-        .parallax-stars {
-          transform: translateY(calc(var(--scroll-y) * -0.05px));
-          opacity: clamp(0, calc((1 - var(--scroll-y) / (${windowHeight} * 1.5)) * ${theme.stars.intensity}), 1);
-        }
-        .parallax-aurora {
-          opacity: clamp(0, calc(1 - var(--scroll-y) / (${windowHeight} * 1.2)), 1);
-        }
-        .scroll-blocked {
-          overflow: hidden !important;
-          touch-action: none !important;
-        }
-        .parallax-scroll-indicator {
-          opacity: clamp(0, calc((1 - var(--scroll-y) / (${windowHeight} * 0.6)) * 0.8), 0.8);
-        }
-        /* Section 1 (About): fades in after title fades, then fades out */
-        /* STRICT SEQUENTIAL TIMING: Gap of 0.4h between sections */
-        
-        /* Section 1 (About): Starts at 1.0h, Ends at 2.0h */
-        .parallax-section-1 {
-          --fade-in: clamp(0, calc((var(--scroll-y) - ${windowHeight * 1.0}) / ${windowHeight * 0.3}), 1);
-          --fade-out: clamp(0, calc(1 - (var(--scroll-y) - ${windowHeight * 1.7}) / ${windowHeight * 0.3}), 1);
-          opacity: min(var(--fade-in), var(--fade-out));
-          transform: translateY(calc((var(--scroll-y) - ${windowHeight * 1.2}) * 0.4px));
-        }
-
-        /* Section 2 (Featured): Starts at 2.4h, Ends at 3.4h */
-        .parallax-section-2 {
-          --fade-in-2: clamp(0, calc((var(--scroll-y) - ${windowHeight * 2.4}) / ${windowHeight * 0.3}), 1);
-          --fade-out-2: clamp(0, calc(1 - (var(--scroll-y) - ${windowHeight * 3.1}) / ${windowHeight * 0.3}), 1);
-          opacity: min(var(--fade-in-2), var(--fade-out-2));
-          transform: translateY(calc((var(--scroll-y) - ${windowHeight * 2.6}) * 0.4px));
-        }
-
-        /* Section 3 (Contact): Starts at 3.8h, Ends at 4.8h */
-        .parallax-section-3 {
-          --fade-in-3: clamp(0, calc((var(--scroll-y) - ${windowHeight * 3.8}) / ${windowHeight * 0.3}), 1);
-          --fade-out-3: clamp(0, calc(1 - (var(--scroll-y) - ${windowHeight * 4.5}) / ${windowHeight * 0.3}), 1);
-          opacity: min(var(--fade-in-3), var(--fade-out-3));
-          transform: translateY(calc((var(--scroll-y) - ${windowHeight * 4.0}) * 0.4px));
-        }
-
-        /* Section 4 (Footer): Starts at 5.2h */
-        .parallax-section-4 {
-          --fade-in-4: clamp(0, calc((var(--scroll-y) - ${windowHeight * 5.2}) / ${windowHeight * 0.3}), 1);
-          opacity: var(--fade-in-4);
-          transform: translateY(calc((var(--scroll-y) - ${windowHeight * 5.4}) * 0.4px));
-        }
-      `}</style>
+            {/* Skip to content link for accessibility */}
+            <a
+                href="#main-content"
+                className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[9999] focus:px-4 focus:py-2 focus:bg-black/90 focus:text-white focus:rounded"
+            >
+                Skip to main content
+            </a>
 
             <SeasonControls current={season} onChange={setSeason} />
             <AtmosphericParticles season={season} />
@@ -934,12 +623,12 @@ export default function ParallaxPortfolio() {
                     </div>
 
                     {/* Stars with CSS-driven transforms */}
-                    <div className="absolute inset-0 overflow-hidden transition-opacity duration-1000 parallax-stars">
+                    <div className="absolute inset-0 overflow-hidden transition-opacity duration-1000 parallax-stars pointer-events-none">
                         <StarsStatic theme={theme} />
                     </div>
 
                     {/* Aurora effect (winter only) */}
-                    <div className="absolute inset-0 gpu-layer parallax-aurora">
+                    <div className="absolute inset-0 gpu-layer parallax-aurora pointer-events-none">
                         <Aurora theme={theme} />
                     </div>
 
@@ -947,7 +636,7 @@ export default function ParallaxPortfolio() {
                     {layerComponents.map((LayerComponent, index) => (
                         <div
                             key={index}
-                            className={`absolute inset-0 will-change-transform gpu-layer parallax-layer-${index}`}
+                            className={`absolute inset-0 will-change-transform gpu-layer parallax-layer-${index} pointer-events-none`}
                         >
                             <LayerComponent theme={theme} />
                         </div>
@@ -959,7 +648,8 @@ export default function ParallaxPortfolio() {
                     </div>
                 </div>
 
-                <div style={{ height: totalHeight, position: 'relative' }}>
+                <div id="main-content" style={{ height: totalHeight, position: 'relative' }}>
+                    {/* Hero Section - Fixed */}
                     <div className="fixed inset-0 flex flex-col items-center justify-center text-center px-6 z-30 pointer-events-none transition-colors duration-1000 parallax-hero">
                         <h1
                             className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl xl:text-9xl font-extralight mb-6 tracking-tight pointer-events-auto transition-colors duration-1000"
@@ -983,7 +673,8 @@ export default function ParallaxPortfolio() {
                         </p>
                     </div>
 
-                    <div className="fixed bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-3 z-50 transition-opacity duration-500 parallax-scroll-indicator">
+                    {/* Scroll Indicator - Fixed */}
+                    <div className="fixed bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-3 z-50 transition-opacity duration-500 parallax-scroll-indicator" aria-hidden="true">
                         <span className="text-[10px] tracking-[0.4em] uppercase font-light transition-colors duration-1000" style={{ color: theme.details.textSub }}>
                             Scroll
                         </span>
@@ -992,81 +683,26 @@ export default function ParallaxPortfolio() {
                         </div>
                     </div>
 
-                    {/* About Me section */}
-                    <div
-                        className="fixed inset-0 flex items-start justify-center pt-[25vh] z-30 pointer-events-none parallax-section-1"
-                    >
-                        <div className="max-w-3xl text-center px-8 py-10 rounded-3xl backdrop-blur-sm bg-black/5 border border-white/5 mx-6">
-                            <h2 className="text-4xl font-light mb-8 transition-colors duration-1000" style={{ color: theme.details.text }}>About Me</h2>
-                            <p className="text-lg leading-relaxed mb-6 transition-colors duration-1000" style={{ color: theme.details.textSub }}>
-                                I craft digital experiences at the intersection of elegant design and powerful technology. My journey began with a curiosity for how things work and evolved into a passion for building systems that solve real-world problems.
-                            </p>
-                            <p className="text-lg leading-relaxed transition-colors duration-1000" style={{ color: theme.details.textSub }}>
-                                Whether it's architecting complex backend infrastructure or polishing the finest details of a user interface, I bring dedication and precision to every line of code.
-                            </p>
-                        </div>
-                    </div>
-
-                    {/* Featured Work section */}
-                    <div
-                        className="fixed inset-0 flex items-start justify-center pt-[25vh] z-30 pointer-events-none parallax-section-2"
-                    >
-                        <div className="max-w-3xl text-center px-8 py-10 rounded-3xl backdrop-blur-sm bg-black/5 border border-white/5 mx-6">
-                            <h2 className="text-4xl font-light mb-8 transition-colors duration-1000" style={{ color: theme.details.text }}>Featured Work</h2>
-                            <div className="space-y-6">
-                                <div>
-                                    <h3 className="text-xl font-medium mb-2" style={{ color: theme.details.text }}>ResearchLens</h3>
-                                    <p className="text-base" style={{ color: theme.details.textSub }}>An AI-powered research assistant that synthesizes complex academic papers into actionable insights.</p>
-                                </div>
-                                <div>
-                                    <h3 className="text-xl font-medium mb-2" style={{ color: theme.details.text }}>ChatBot Builder</h3>
-                                    <p className="text-base" style={{ color: theme.details.textSub }}>A no-code visual interface for constructing intelligent conversational agents.</p>
-                                </div>
-                                <div>
-                                    <h3 className="text-xl font-medium mb-2" style={{ color: theme.details.text }}>Meeting Minutes</h3>
-                                    <p className="text-base" style={{ color: theme.details.textSub }}>Automated transcription and summarization service for corporate meetings.</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Contact Section */}
-                    <div
-                        className="fixed inset-0 flex items-start justify-center pt-[25vh] z-30 pointer-events-none parallax-section-3"
-                    >
-                        <div className="max-w-3xl text-center px-8 py-10 rounded-3xl backdrop-blur-sm bg-black/5 border border-white/5 mx-6">
-                            <h2 className="text-4xl font-light mb-8 transition-colors duration-1000" style={{ color: theme.details.text }}>Get in Touch</h2>
-                            <p className="text-lg leading-relaxed mb-8 transition-colors duration-1000" style={{ color: theme.details.textSub }}>
-                                Interested in collaborating or have a project in mind? Let's build something extraordinary together.
-                                <br /><br />
-                                I'm currently available for freelance projects and open to discussing new opportunities.
-                            </p>
-                            <div className="flex gap-8 justify-center">
-                                <span className="text-sm tracking-widest uppercase border-b border-transparent hover:border-current transition-all duration-300 cursor-pointer pointer-events-auto" style={{ color: theme.details.text }}>Email</span>
-                                <span className="text-sm tracking-widest uppercase border-b border-transparent hover:border-current transition-all duration-300 cursor-pointer pointer-events-auto" style={{ color: theme.details.text }}>LinkedIn</span>
-                                <span className="text-sm tracking-widest uppercase border-b border-transparent hover:border-current transition-all duration-300 cursor-pointer pointer-events-auto" style={{ color: theme.details.text }}>GitHub</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Footer */}
-                    <div
-                        className="fixed inset-0 flex items-end justify-center pb-8 z-30 pointer-events-none parallax-section-4"
-                    >
-                        <p className="text-xs tracking-widest uppercase transition-colors duration-1000" style={{ color: theme.details.textSub }}>
-                            © 2025 Pramish Sihali
-                        </p>
-                    </div>
+                    {/* Content Sections - Absolutely positioned within scroll */}
+                    <AboutSection theme={theme} windowHeight={windowHeight} />
+                    <WorkSection theme={theme} windowHeight={windowHeight} />
+                    <ContactSection theme={theme} windowHeight={windowHeight} />
+                    <FooterSection theme={theme} windowHeight={windowHeight} />
                 </div>
 
                 {/* Side Navigation */}
-                <div className="fixed right-6 top-1/2 -translate-y-1/2 z-50 flex flex-col gap-4">
+                <nav
+                    className="fixed right-6 top-1/2 -translate-y-1/2 z-50 flex flex-col gap-4"
+                    role="navigation"
+                    aria-label="Page sections"
+                >
                     {navSections.map((section) => (
                         <button
                             key={section.id}
                             onClick={() => scrollToSection(section.offset)}
                             className="group relative flex items-center justify-end py-1"
-                            aria-label={`Scroll to ${section.label}`}
+                            aria-label={`Navigate to ${section.label} section`}
+                            aria-current={activeSection === section.id ? 'true' : undefined}
                         >
                             <span
                                 className={`absolute right-6 opacity-0 group-hover:opacity-100 transition-all duration-300 text-[10px] tracking-[0.3em] uppercase mr-2 pointer-events-none whitespace-nowrap ${activeSection === section.id ? 'opacity-100 translate-x-0' : 'translate-x-2'}`}
@@ -1079,10 +715,11 @@ export default function ParallaxPortfolio() {
                                 style={{
                                     backgroundColor: theme.details.text,
                                 }}
+                                aria-hidden="true"
                             />
                         </button>
                     ))}
-                </div>
+                </nav>
 
                 {/* Scroll to Top Button */}
                 <button
@@ -1094,8 +731,9 @@ export default function ParallaxPortfolio() {
                         border: '1px solid rgba(255,255,255,0.1)',
                         color: theme.details.text
                     }}
+                    aria-label="Scroll to top"
                 >
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                         <path d="M18 15l-6-6-6 6" />
                     </svg>
                 </button>
