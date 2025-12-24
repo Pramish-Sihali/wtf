@@ -761,6 +761,9 @@ export default function ParallaxPortfolio() {
         };
 
         container.addEventListener('scroll', handleScroll, { passive: true });
+        // Initialize values on mount
+        handleScroll();
+
         return () => container.removeEventListener('scroll', handleScroll);
     }, []);
 
@@ -840,7 +843,12 @@ export default function ParallaxPortfolio() {
         }
         .parallax-root {
           --scroll-y: 0;
-          --bg-scroll: 0;
+          --l0-scroll: 0;
+          --l1-scroll: 0;
+          --l2-scroll: 0;
+          --l3-scroll: 0;
+          --l4-scroll: 0;
+          --l5-scroll: 0;
           --mouse-x: 0;
           --mouse-y: 0;
         }
