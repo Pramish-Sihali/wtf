@@ -725,7 +725,12 @@ export default function ParallaxPortfolio() {
 
         const handleScroll = () => {
             const scrollY = container.scrollTop;
+            const h = window.innerHeight;
+            // Cap background movement at 1.5 screen heights (when About section is active)
+            const bgScroll = Math.min(scrollY, h * 1.5);
+
             root.style.setProperty('--scroll-y', `${scrollY}`);
+            root.style.setProperty('--bg-scroll', `${bgScroll}`);
         };
 
         container.addEventListener('scroll', handleScroll, { passive: true });
@@ -794,21 +799,22 @@ export default function ParallaxPortfolio() {
         }
         .parallax-root {
           --scroll-y: 0;
+          --bg-scroll: 0;
           --mouse-x: 0;
           --mouse-y: 0;
         }
         /* Mountains rise from behind foreground as you scroll */
         /* Layer 0 = Moon, no offset - always visible */
-        /* Layers 1-5 = Mountains, start separated, rise with reduced multipliers */
-        /* Layer 6 = Foreground, stays fixed at bottom */
-        .parallax-layer-0 { transform: translate3d(calc(var(--mouse-x) * 0.05px), calc(var(--scroll-y) * -0.005px + var(--mouse-y) * 0.02px), 0); }
-        .parallax-layer-1 { transform: translate3d(calc(var(--mouse-x) * 0.08px), calc(500px - var(--scroll-y) * 0.08px + var(--mouse-y) * 0.03px), 0); }
-        .parallax-layer-2 { transform: translate3d(calc(var(--mouse-x) * 0.12px), calc(480px - var(--scroll-y) * 0.07px + var(--mouse-y) * 0.04px), 0); }
-        .parallax-layer-3 { transform: translate3d(calc(var(--mouse-x) * 0.16px), calc(450px - var(--scroll-y) * 0.06px + var(--mouse-y) * 0.05px), 0); }
-        .parallax-layer-4 { transform: translate3d(calc(var(--mouse-x) * 0.22px), calc(400px - var(--scroll-y) * 0.05px + var(--mouse-y) * 0.07px), 0); }
-        .parallax-layer-5 { transform: translate3d(calc(var(--mouse-x) * 0.28px), calc(350px - var(--scroll-y) * 0.04px + var(--mouse-y) * 0.09px), 0); }
+        /* Layers 1-5 = SURPRISE EFFECT: Start deep/hidden, rise fast to visible, then STOP */
+        /* Multipliers calculated to bring layers from ~500px down to 0px within 1200px of scroll */
+        .parallax-layer-0 { transform: translate3d(calc(var(--mouse-x) * 0.05px), calc(var(--bg-scroll) * -0.02px + var(--mouse-y) * 0.02px), 0); }
+        .parallax-layer-1 { transform: translate3d(calc(var(--mouse-x) * 0.08px), calc(500px - var(--bg-scroll) * 0.42px + var(--mouse-y) * 0.03px), 0); }
+        .parallax-layer-2 { transform: translate3d(calc(var(--mouse-x) * 0.12px), calc(450px - var(--bg-scroll) * 0.38px + var(--mouse-y) * 0.04px), 0); }
+        .parallax-layer-3 { transform: translate3d(calc(var(--mouse-x) * 0.16px), calc(400px - var(--bg-scroll) * 0.33px + var(--mouse-y) * 0.05px), 0); }
+        .parallax-layer-4 { transform: translate3d(calc(var(--mouse-x) * 0.22px), calc(350px - var(--bg-scroll) * 0.29px + var(--mouse-y) * 0.07px), 0); }
+        .parallax-layer-5 { transform: translate3d(calc(var(--mouse-x) * 0.28px), calc(300px - var(--bg-scroll) * 0.25px + var(--mouse-y) * 0.09px), 0); }
         .parallax-layer-6 { transform: translate3d(calc(var(--mouse-x) * 0.35px), calc(var(--mouse-y) * 0.11px), 0); }
-        .parallax-mist { transform: translate3d(0, calc(400px - var(--scroll-y) * 0.05px), 0); }
+        .parallax-mist { transform: translate3d(0, calc(400px - var(--bg-scroll) * 0.33px), 0); }
         .parallax-hero {
           opacity: clamp(0, calc(1 - var(--scroll-y) / (${windowHeight} * 0.8)), 1);
           transform: translateY(calc(var(--scroll-y) * 0.3px));
@@ -945,8 +951,11 @@ export default function ParallaxPortfolio() {
                     >
                         <div className="max-w-3xl text-center px-6">
                             <h2 className="text-4xl font-light mb-8 transition-colors duration-1000" style={{ color: theme.details.text }}>About Me</h2>
+                            <p className="text-lg leading-relaxed mb-6 transition-colors duration-1000" style={{ color: theme.details.textSub }}>
+                                I craft digital experiences at the intersection of elegant design and powerful technology. My journey began with a curiosity for how things work and evolved into a passion for building systems that solve real-world problems.
+                            </p>
                             <p className="text-lg leading-relaxed transition-colors duration-1000" style={{ color: theme.details.textSub }}>
-                                I craft digital experiences at the intersection of elegant design and powerful technology.
+                                Whether it's architecting complex backend infrastructure or polishing the finest details of a user interface, I bring dedication and precision to every line of code.
                             </p>
                         </div>
                     </div>
@@ -957,9 +966,20 @@ export default function ParallaxPortfolio() {
                     >
                         <div className="max-w-3xl text-center px-6">
                             <h2 className="text-4xl font-light mb-8 transition-colors duration-1000" style={{ color: theme.details.text }}>Featured Work</h2>
-                            <p className="text-lg leading-relaxed transition-colors duration-1000" style={{ color: theme.details.textSub }}>
-                                ResearchLens • ChatBot Builder • Meeting Minutes
-                            </p>
+                            <div className="space-y-6">
+                                <div>
+                                    <h3 className="text-xl font-medium mb-2" style={{ color: theme.details.text }}>ResearchLens</h3>
+                                    <p className="text-base" style={{ color: theme.details.textSub }}>An AI-powered research assistant that synthesizes complex academic papers into actionable insights.</p>
+                                </div>
+                                <div>
+                                    <h3 className="text-xl font-medium mb-2" style={{ color: theme.details.text }}>ChatBot Builder</h3>
+                                    <p className="text-base" style={{ color: theme.details.textSub }}>A no-code visual interface for constructing intelligent conversational agents.</p>
+                                </div>
+                                <div>
+                                    <h3 className="text-xl font-medium mb-2" style={{ color: theme.details.text }}>Meeting Minutes</h3>
+                                    <p className="text-base" style={{ color: theme.details.textSub }}>Automated transcription and summarization service for corporate meetings.</p>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -971,8 +991,10 @@ export default function ParallaxPortfolio() {
                             <h2 className="text-4xl font-light mb-8 transition-colors duration-1000" style={{ color: theme.details.text }}>Get in Touch</h2>
                             <p className="text-lg leading-relaxed mb-8 transition-colors duration-1000" style={{ color: theme.details.textSub }}>
                                 Interested in collaborating or have a project in mind? Let's build something extraordinary together.
+                                <br /><br />
+                                I'm currently available for freelance projects and open to discussing new opportunities.
                             </p>
-                            <div className="flex gap-6 justify-center">
+                            <div className="flex gap-8 justify-center">
                                 <span className="text-sm tracking-widest uppercase border-b border-transparent hover:border-current transition-all duration-300 cursor-pointer pointer-events-auto" style={{ color: theme.details.text }}>Email</span>
                                 <span className="text-sm tracking-widest uppercase border-b border-transparent hover:border-current transition-all duration-300 cursor-pointer pointer-events-auto" style={{ color: theme.details.text }}>LinkedIn</span>
                                 <span className="text-sm tracking-widest uppercase border-b border-transparent hover:border-current transition-all duration-300 cursor-pointer pointer-events-auto" style={{ color: theme.details.text }}>GitHub</span>
