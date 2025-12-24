@@ -288,9 +288,9 @@ const Moon = memo(({ theme }: { theme: ThemeColors }) => {
         ? (1 - illumination) * 120 - 60  // Waxing: shadow moves left to right
         : -(1 - illumination) * 120 + 60; // Waning: shadow moves right to left
 
-    const cx = 1120;
-    const cy = 160;
-    const r = 58;
+    const cx = 1100;
+    const cy = 280;
+    const r = 62;
 
     return (
         <svg viewBox="0 0 1440 900" preserveAspectRatio="xMidYMax slice" className="w-full h-full">
@@ -609,23 +609,30 @@ const Foreground = memo(({ theme }: { theme: ThemeColors }) => (
         {/* Smooth foreground terrain */}
         <path fill="url(#fgGround)" d="M0,900 L0,750 Q80,740 160,760 Q240,730 320,710 Q420,740 520,700 Q620,730 720,690 Q820,720 920,680 Q1020,710 1120,670 Q1220,700 1320,660 Q1380,690 1440,680 L1440,900 Z" />
 
-        {/* Left tree - shorter, starts lower */}
+        {/* Left tree - fuller, extends to edge */}
         <g fill={theme.forest.treeDark} className="transition-all duration-1000">
-            <path d="M-30,900 L-30,620 Q-5,650 30,630 Q10,640 45,670 Q20,660 60,700 Q35,690 75,730 Q50,720 90,760 Q65,750 105,790 Q80,780 120,830 Q95,820 135,860 L135,900 Z" />
-            <path d="M30,630 Q-20,610 -40,595 Q-25,605 -45,590 Q-15,615 30,630 Z" opacity="0.9" />
+            {/* Main tree silhouette */}
+            <path d="M-80,900 L-80,550 Q-50,580 -20,560 Q-40,570 0,600 Q-25,590 20,630 Q-10,620 40,660 Q5,650 55,695 Q25,685 70,730 Q40,720 85,765 Q55,755 100,800 Q70,790 115,840 Q85,830 130,875 Q100,865 145,900 Z" />
+            {/* Secondary branches for depth */}
+            <path d="M-20,560 Q-70,530 -90,510 Q-65,525 -95,505 Q-55,545 -20,560 Z" opacity="0.85" />
+            <path d="M0,600 Q-55,570 -80,550 Q-60,565 -85,545 Q-45,585 0,600 Z" opacity="0.8" />
         </g>
 
-        {/* Right tree - shorter, starts lower */}
+        {/* Right tree - fuller, extends to edge */}
         <g fill={theme.forest.treeDark} className="transition-all duration-1000">
-            <path d="M1470,900 L1470,600 Q1445,630 1420,610 Q1435,620 1400,660 Q1420,650 1380,700 Q1400,690 1360,740 Q1380,730 1340,780 Q1360,770 1320,820 Q1340,810 1305,860 L1305,900 Z" />
-            <path d="M1420,610 Q1460,590 1480,575 Q1465,585 1485,570 Q1455,600 1420,610 Z" opacity="0.9" />
+            {/* Main tree silhouette */}
+            <path d="M1520,900 L1520,530 Q1490,560 1460,545 Q1480,555 1440,590 Q1465,580 1420,625 Q1445,615 1400,660 Q1425,650 1380,700 Q1405,690 1355,740 Q1385,730 1330,785 Q1365,775 1310,830 Q1345,820 1295,875 Q1330,865 1280,900 Z" />
+            {/* Secondary branches for depth */}
+            <path d="M1460,545 Q1510,515 1535,495 Q1515,510 1540,490 Q1500,530 1460,545 Z" opacity="0.85" />
+            <path d="M1440,590 Q1495,555 1520,535 Q1500,550 1525,530 Q1485,575 1440,590 Z" opacity="0.8" />
         </g>
 
         {/* Small foreground bushes */}
-        <g fill={theme.forest.treeDark} className="transition-all duration-1000" opacity="0.7">
-            <ellipse cx="250" cy="800" rx="35" ry="20" />
-            <ellipse cx="600" cy="780" rx="30" ry="18" />
-            <ellipse cx="1000" cy="770" rx="40" ry="20" />
+        <g fill={theme.forest.treeDark} className="transition-all duration-1000" opacity="0.6">
+            <ellipse cx="180" cy="820" rx="45" ry="25" />
+            <ellipse cx="550" cy="790" rx="38" ry="22" />
+            <ellipse cx="900" cy="780" rx="42" ry="24" />
+            <ellipse cx="1250" cy="800" rx="40" ry="22" />
         </g>
     </svg>
 ));
@@ -646,8 +653,8 @@ const SeasonControls = memo(({ current, onChange }: { current: Season, onChange:
                     key={s}
                     onClick={() => onChange(s)}
                     className={`px-3 py-1.5 rounded-full text-xs uppercase tracking-wider transition-all duration-300 flex items-center gap-1.5 ${current === s
-                            ? 'bg-white/90 text-black shadow-lg scale-105 font-medium'
-                            : 'text-white/50 hover:text-white/80 hover:bg-white/10'
+                        ? 'bg-white/90 text-black shadow-lg scale-105 font-medium'
+                        : 'text-white/50 hover:text-white/80 hover:bg-white/10'
                         }`}
                     title={s}
                 >
@@ -824,6 +831,20 @@ export default function ParallaxPortfolio() {
         .parallax-scroll-indicator {
           opacity: clamp(0, calc((1 - var(--scroll-y) / (${windowHeight} * 0.6)) * 0.8), 0.8);
         }
+        /* Section 1 (About): fades in after title fades, then fades out */
+        .parallax-section-1 {
+          --fade-in: clamp(0, calc((var(--scroll-y) - ${windowHeight * 0.5}) / ${windowHeight * 0.4}), 1);
+          --fade-out: clamp(0, calc(1 - (var(--scroll-y) - ${windowHeight * 1.4}) / ${windowHeight * 0.4}), 1);
+          opacity: min(var(--fade-in), var(--fade-out));
+          transform: translateY(calc((var(--scroll-y) - ${windowHeight * 0.8}) * 0.25px));
+        }
+        /* Section 2 (Featured Work): fades in after section 1, then fades out */
+        .parallax-section-2 {
+          --fade-in-2: clamp(0, calc((var(--scroll-y) - ${windowHeight * 1.6}) / ${windowHeight * 0.4}), 1);
+          --fade-out-2: clamp(0, calc(1 - (var(--scroll-y) - ${windowHeight * 2.5}) / ${windowHeight * 0.4}), 1);
+          opacity: min(var(--fade-in-2), var(--fade-out-2));
+          transform: translateY(calc((var(--scroll-y) - ${windowHeight * 1.8}) * 0.25px));
+        }
       `}</style>
 
             <SeasonControls current={season} onChange={setSeason} />
@@ -886,7 +907,7 @@ export default function ParallaxPortfolio() {
                                 textShadow: '0 2px 20px rgba(0,0,0,0.3)',
                             }}
                         >
-                            Full-Stack Developer 
+                            Full-Stack Developer
                         </p>
                     </div>
 
@@ -899,23 +920,32 @@ export default function ParallaxPortfolio() {
                         </div>
                     </div>
 
-                    <div className="relative z-40 transition-colors duration-1000" style={{ marginTop: windowHeight * 1.5 }}>
-                        <section style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                            <div className="max-w-3xl text-center">
-                                <h2 className="text-4xl font-light mb-8 transition-colors duration-1000" style={{ color: theme.details.text }}>About Me</h2>
-                                <p className="text-lg leading-relaxed transition-colors duration-1000" style={{ color: theme.details.textSub }}>
-                                    I craft digital experiences at the intersection of elegant design and powerful technology.
-                                </p>
-                            </div>
-                        </section>
-                        <section style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                            <div className="max-w-3xl text-center">
-                                <h2 className="text-4xl font-light mb-8 transition-colors duration-1000" style={{ color: theme.details.text }}>Featured Work</h2>
-                                <p className="text-lg leading-relaxed transition-colors duration-1000" style={{ color: theme.details.textSub }}>
-                                    ResearchLens • ChatBot Builder • Meeting Minutes
-                                </p>
-                            </div>
-                        </section>
+                    {/* About Me section - appears after title fades, then fades out */}
+                    <div
+                        className="fixed inset-0 flex items-center justify-center z-30 pointer-events-none parallax-section-1"
+                    >
+                        <div className="max-w-3xl text-center px-6">
+                            <h2 className="text-4xl font-light mb-8 transition-colors duration-1000" style={{ color: theme.details.text }}>About Me</h2>
+                            <p className="text-lg leading-relaxed transition-colors duration-1000" style={{ color: theme.details.textSub }}>
+                                I craft digital experiences at the intersection of elegant design and powerful technology.
+                            </p>
+                        </div>
+                    </div>
+
+                    {/* Featured Work section - appears after About fades */}
+                    <div
+                        className="fixed inset-0 flex items-center justify-center z-30 pointer-events-none parallax-section-2"
+                    >
+                        <div className="max-w-3xl text-center px-6">
+                            <h2 className="text-4xl font-light mb-8 transition-colors duration-1000" style={{ color: theme.details.text }}>Featured Work</h2>
+                            <p className="text-lg leading-relaxed transition-colors duration-1000" style={{ color: theme.details.textSub }}>
+                                ResearchLens • ChatBot Builder • Meeting Minutes
+                            </p>
+                        </div>
+                    </div>
+
+                    {/* Footer at the very end */}
+                    <div className="relative z-40" style={{ marginTop: windowHeight * 3.5 }}>
                         <footer className="py-16 text-center">
                             <p className="text-xs tracking-widest uppercase transition-colors duration-1000" style={{ color: theme.details.textSub }}>
                                 © 2025 Pramish Sihali
