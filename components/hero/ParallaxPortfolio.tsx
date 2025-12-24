@@ -706,6 +706,8 @@ const StarsStatic = memo(({ theme }: { theme: ThemeColors }) => {
 export default function ParallaxPortfolio() {
     const [windowHeight, setWindowHeight] = useState(800);
     const [season, setSeason] = useState<Season>('winter');
+    const [activeSection, setActiveSection] = useState('home');
+    const [showScrollTop, setShowScrollTop] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
     const rootRef = useRef<HTMLDivElement>(null);
 
@@ -726,11 +728,36 @@ export default function ParallaxPortfolio() {
         const handleScroll = () => {
             const scrollY = container.scrollTop;
             const h = window.innerHeight;
-            // Cap background movement at 1.5 screen heights (when About section is active)
-            const bgScroll = Math.min(scrollY, h * 1.5);
 
+            // Central scroll variable
             root.style.setProperty('--scroll-y', `${scrollY}`);
-            root.style.setProperty('--bg-scroll', `${bgScroll}`);
+
+            // STAGGERED LAYER LOGIC: Each layer has its own capped travel window
+            // Formula: Math.min(Math.max(scrollY - start, 0), duration)
+            const h1 = h;
+
+            const l0 = Math.min(scrollY, h * 3.5); // Moon/Overall
+            const l1 = Math.min(scrollY, h * 1.5); // Entire Mountain Range (Merged 1, 2, 3)
+            const l2 = l1;
+            const l3 = l1;
+            const l4 = Math.min(Math.max(scrollY - h * 1.5, 0), h * 1.5); // Hills start after mountains
+            const l5 = Math.min(Math.max(scrollY - h * 2.5, 0), h * 1.5); // Forest starts last
+
+            root.style.setProperty('--l0-scroll', `${l0}`);
+            root.style.setProperty('--l1-scroll', `${l1}`);
+            root.style.setProperty('--l2-scroll', `${l2}`);
+            root.style.setProperty('--l3-scroll', `${l3}`);
+            root.style.setProperty('--l4-scroll', `${l4}`);
+            root.style.setProperty('--l5-scroll', `${l5}`);
+
+            // Active Section Tracking
+            if (scrollY < h * 0.8) setActiveSection('home');
+            else if (scrollY < h * 2.0) setActiveSection('about');
+            else if (scrollY < h * 3.4) setActiveSection('work');
+            else setActiveSection('contact');
+
+            // Scroll Top Visibility
+            setShowScrollTop(scrollY > h * 0.5);
         };
 
         container.addEventListener('scroll', handleScroll, { passive: true });
@@ -742,9 +769,23 @@ export default function ParallaxPortfolio() {
         if (!root) return;
         const x = (e.clientX / window.innerWidth - 0.5) * 20;
         const y = (e.clientY / window.innerHeight - 0.5) * 10;
-        root.style.setProperty('--mouse-x', `${x}`);
         root.style.setProperty('--mouse-y', `${y}`);
     }, []);
+
+    const scrollToSection = (multiplier: number) => {
+        if (!containerRef.current) return;
+        containerRef.current.scrollTo({
+            top: windowHeight * multiplier,
+            behavior: 'smooth'
+        });
+    };
+
+    const navSections = [
+        { id: 'home', label: 'Home', offset: 0 },
+        { id: 'about', label: 'About', offset: 1.2 },
+        { id: 'work', label: 'Work', offset: 2.6 },
+        { id: 'contact', label: 'Contact', offset: 4.0 },
+    ];
 
     const totalHeight = windowHeight * 7;
     const layerComponents = useMemo(() => [Moon, MountainsFar, MountainsMidFar, MountainsMid, ForestHills, ForestDense, Foreground], []);
@@ -803,18 +844,16 @@ export default function ParallaxPortfolio() {
           --mouse-x: 0;
           --mouse-y: 0;
         }
-        /* Mountains rise from behind foreground as you scroll */
-        /* Layer 0 = Moon, no offset - always visible */
-        /* Layers 1-5 = SURPRISE EFFECT: Start deep/hidden, rise fast to visible, then STOP */
-        /* Multipliers calculated to bring layers from ~500px down to 0px within 1200px of scroll */
-        .parallax-layer-0 { transform: translate3d(calc(var(--mouse-x) * 0.05px), calc(var(--bg-scroll) * -0.02px + var(--mouse-y) * 0.02px), 0); }
-        .parallax-layer-1 { transform: translate3d(calc(var(--mouse-x) * 0.08px), calc(500px - var(--bg-scroll) * 0.42px + var(--mouse-y) * 0.03px), 0); }
-        .parallax-layer-2 { transform: translate3d(calc(var(--mouse-x) * 0.12px), calc(450px - var(--bg-scroll) * 0.38px + var(--mouse-y) * 0.04px), 0); }
-        .parallax-layer-3 { transform: translate3d(calc(var(--mouse-x) * 0.16px), calc(400px - var(--bg-scroll) * 0.33px + var(--mouse-y) * 0.05px), 0); }
-        .parallax-layer-4 { transform: translate3d(calc(var(--mouse-x) * 0.22px), calc(350px - var(--bg-scroll) * 0.29px + var(--mouse-y) * 0.07px), 0); }
-        .parallax-layer-5 { transform: translate3d(calc(var(--mouse-x) * 0.28px), calc(300px - var(--bg-scroll) * 0.25px + var(--mouse-y) * 0.09px), 0); }
+        /* Mountains rise sequentially: Layer 1 starts first, Layer 5 last */
+        .parallax-layer-0 { transform: translate3d(calc(var(--mouse-x) * 0.05px), calc(var(--l0-scroll) * -0.02px + var(--mouse-y) * 0.02px), 0); }
+        .parallax-layer-1 { transform: translate3d(calc(var(--mouse-x) * 0.08px), calc(500px - var(--l1-scroll) * 0.40px + var(--mouse-y) * 0.03px), 0); }
+        .parallax-layer-2 { transform: translate3d(calc(var(--mouse-x) * 0.12px), calc(450px - var(--l2-scroll) * 0.38px + var(--mouse-y) * 0.04px), 0); }
+        .parallax-layer-3 { transform: translate3d(calc(var(--mouse-x) * 0.16px), calc(400px - var(--l3-scroll) * 0.35px + var(--mouse-y) * 0.05px), 0); }
+        .parallax-layer-4 { transform: translate3d(calc(var(--mouse-x) * 0.22px), calc(350px - var(--l4-scroll) * 0.32px + var(--mouse-y) * 0.07px), 0); }
+        .parallax-layer-5 { transform: translate3d(calc(var(--mouse-x) * 0.28px), calc(300px - var(--l5-scroll) * 0.30px + var(--mouse-y) * 0.09px), 0); }
         .parallax-layer-6 { transform: translate3d(calc(var(--mouse-x) * 0.35px), calc(var(--mouse-y) * 0.11px), 0); }
-        .parallax-mist { transform: translate3d(0, calc(400px - var(--bg-scroll) * 0.33px), 0); }
+        /* Mist rises with mid-range layer 3 */
+        .parallax-mist { transform: translate3d(0, calc(400px - var(--l3-scroll) * 0.35px), 0); }
         .parallax-hero {
           opacity: clamp(0, calc(1 - var(--scroll-y) / (${windowHeight} * 0.8)), 1);
           transform: translateY(calc(var(--scroll-y) * 0.3px));
@@ -949,7 +988,7 @@ export default function ParallaxPortfolio() {
                     <div
                         className="fixed inset-0 flex items-start justify-center pt-[25vh] z-30 pointer-events-none parallax-section-1"
                     >
-                        <div className="max-w-3xl text-center px-6">
+                        <div className="max-w-3xl text-center px-8 py-10 rounded-3xl backdrop-blur-sm bg-black/5 border border-white/5 mx-6">
                             <h2 className="text-4xl font-light mb-8 transition-colors duration-1000" style={{ color: theme.details.text }}>About Me</h2>
                             <p className="text-lg leading-relaxed mb-6 transition-colors duration-1000" style={{ color: theme.details.textSub }}>
                                 I craft digital experiences at the intersection of elegant design and powerful technology. My journey began with a curiosity for how things work and evolved into a passion for building systems that solve real-world problems.
@@ -964,7 +1003,7 @@ export default function ParallaxPortfolio() {
                     <div
                         className="fixed inset-0 flex items-start justify-center pt-[25vh] z-30 pointer-events-none parallax-section-2"
                     >
-                        <div className="max-w-3xl text-center px-6">
+                        <div className="max-w-3xl text-center px-8 py-10 rounded-3xl backdrop-blur-sm bg-black/5 border border-white/5 mx-6">
                             <h2 className="text-4xl font-light mb-8 transition-colors duration-1000" style={{ color: theme.details.text }}>Featured Work</h2>
                             <div className="space-y-6">
                                 <div>
@@ -987,7 +1026,7 @@ export default function ParallaxPortfolio() {
                     <div
                         className="fixed inset-0 flex items-start justify-center pt-[25vh] z-30 pointer-events-none parallax-section-3"
                     >
-                        <div className="max-w-3xl text-center px-6">
+                        <div className="max-w-3xl text-center px-8 py-10 rounded-3xl backdrop-blur-sm bg-black/5 border border-white/5 mx-6">
                             <h2 className="text-4xl font-light mb-8 transition-colors duration-1000" style={{ color: theme.details.text }}>Get in Touch</h2>
                             <p className="text-lg leading-relaxed mb-8 transition-colors duration-1000" style={{ color: theme.details.textSub }}>
                                 Interested in collaborating or have a project in mind? Let's build something extraordinary together.
@@ -1011,6 +1050,47 @@ export default function ParallaxPortfolio() {
                         </p>
                     </div>
                 </div>
+
+                {/* Side Navigation */}
+                <div className="fixed right-6 top-1/2 -translate-y-1/2 z-50 flex flex-col gap-4">
+                    {navSections.map((section) => (
+                        <button
+                            key={section.id}
+                            onClick={() => scrollToSection(section.offset)}
+                            className="group relative flex items-center justify-end py-1"
+                            aria-label={`Scroll to ${section.label}`}
+                        >
+                            <span
+                                className={`absolute right-6 opacity-0 group-hover:opacity-100 transition-all duration-300 text-[10px] tracking-[0.3em] uppercase mr-2 pointer-events-none whitespace-nowrap ${activeSection === section.id ? 'opacity-100 translate-x-0' : 'translate-x-2'}`}
+                                style={{ color: theme.details.text }}
+                            >
+                                {section.label}
+                            </span>
+                            <div
+                                className={`w-1.5 h-1.5 rounded-full transition-all duration-500 ${activeSection === section.id ? 'w-3 scale-100 opacity-100' : 'opacity-30 group-hover:opacity-60 scale-75 group-hover:scale-100'}`}
+                                style={{
+                                    backgroundColor: theme.details.text,
+                                }}
+                            />
+                        </button>
+                    ))}
+                </div>
+
+                {/* Scroll to Top Button */}
+                <button
+                    onClick={() => scrollToSection(0)}
+                    className={`fixed right-6 bottom-8 z-50 p-3 rounded-full transition-all duration-700 hover:scale-110 flex items-center justify-center ${showScrollTop ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'}`}
+                    style={{
+                        backgroundColor: 'rgba(255,255,255,0.08)',
+                        backdropFilter: 'blur(10px)',
+                        border: '1px solid rgba(255,255,255,0.1)',
+                        color: theme.details.text
+                    }}
+                >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M18 15l-6-6-6 6" />
+                    </svg>
+                </button>
             </div>
         </div>
     );
