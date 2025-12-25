@@ -10,8 +10,16 @@ interface ParallaxScrollState {
 interface UseParallaxScrollOptions {
     containerRef: RefObject<HTMLDivElement | null>;
     rootRef: RefObject<HTMLDivElement | null>;
-    navSections?: Array<{ id: string; offset: number }>;
+    navSections?: readonly { readonly id: string; readonly offset: number }[];
 }
+
+// Default nav sections - extracted to prevent recreation on every render
+const DEFAULT_NAV_SECTIONS = [
+    { id: 'home', offset: 0.8 },
+    { id: 'about', offset: 2.0 },
+    { id: 'work', offset: 3.4 },
+    { id: 'contact', offset: Infinity },
+] as const;
 
 /**
  * Custom hook for managing parallax scroll behavior with RAF throttling.
@@ -20,19 +28,16 @@ interface UseParallaxScrollOptions {
 export function useParallaxScroll({
     containerRef,
     rootRef,
-    navSections = [
-        { id: 'home', offset: 0.8 },
-        { id: 'about', offset: 2.0 },
-        { id: 'work', offset: 3.4 },
-        { id: 'contact', offset: Infinity },
-    ],
+    navSections = DEFAULT_NAV_SECTIONS,
 }: UseParallaxScrollOptions): ParallaxScrollState {
-    const [activeSection, setActiveSection] = useState('home');
-    const [showScrollTop, setShowScrollTop] = useState(false);
+    // Consolidated state to prevent double renders
+    const [scrollState, setScrollState] = useState<ParallaxScrollState>({
+        activeSection: 'home',
+        showScrollTop: false,
+    });
 
     // RAF and throttling refs
     const rafIdRef = useRef<number | null>(null);
-    const lastScrollYRef = useRef<number>(0);
     const isScrollingRef = useRef<boolean>(false);
 
     const updateParallaxLayers = useCallback(() => {
@@ -43,33 +48,23 @@ export function useParallaxScroll({
         const scrollY = container.scrollTop;
         const h = window.innerHeight;
 
-        // Batch all CSS custom property updates
-        const updates: Record<string, string> = {
-            '--scroll-y': `${scrollY}`,
-            '--window-height': `${h}px`,
-        };
-
         // STAGGERED LAYER LOGIC: Each layer has its own capped travel window
         const l0 = Math.min(scrollY, h * 3.5);
         const l1 = Math.min(scrollY, h * 1.5);
-        const l2 = l1;
-        const l3 = l1;
         const l4 = Math.min(Math.max(scrollY - h * 1.5, 0), h * 1.5);
         const l5 = Math.min(Math.max(scrollY - h * 2.5, 0), h * 1.5);
 
-        updates['--l0-scroll'] = `${l0}`;
-        updates['--l1-scroll'] = `${l1}`;
-        updates['--l2-scroll'] = `${l2}`;
-        updates['--l3-scroll'] = `${l3}`;
-        updates['--l4-scroll'] = `${l4}`;
-        updates['--l5-scroll'] = `${l5}`;
+        // Batch all CSS custom property updates - setProperty is faster than individual calls
+        root.style.setProperty('--scroll-y', `${scrollY}`);
+        root.style.setProperty('--window-height', `${h}px`);
+        root.style.setProperty('--l0-scroll', `${l0}`);
+        root.style.setProperty('--l1-scroll', `${l1}`);
+        root.style.setProperty('--l2-scroll', `${l1}`);
+        root.style.setProperty('--l3-scroll', `${l1}`);
+        root.style.setProperty('--l4-scroll', `${l4}`);
+        root.style.setProperty('--l5-scroll', `${l5}`);
 
-        // Apply all updates in a single batch
-        Object.entries(updates).forEach(([prop, value]) => {
-            root.style.setProperty(prop, value);
-        });
-
-        // Active Section Tracking (outside RAF for immediate response)
+        // Active Section Tracking
         let newSection = 'home';
         for (const section of navSections) {
             if (scrollY < h * section.offset) {
@@ -78,19 +73,18 @@ export function useParallaxScroll({
             }
         }
 
-        // Only update state if changed (prevents unnecessary re-renders)
-        if (newSection !== activeSection) {
-            setActiveSection(newSection);
-        }
-
         const shouldShowScrollTop = scrollY > h * 0.5;
-        if (shouldShowScrollTop !== showScrollTop) {
-            setShowScrollTop(shouldShowScrollTop);
+
+        // Only update state if either value changed (single setState to prevent double render)
+        if (newSection !== scrollState.activeSection || shouldShowScrollTop !== scrollState.showScrollTop) {
+            setScrollState({
+                activeSection: newSection,
+                showScrollTop: shouldShowScrollTop,
+            });
         }
 
-        lastScrollYRef.current = scrollY;
         isScrollingRef.current = false;
-    }, [containerRef, rootRef, navSections, activeSection, showScrollTop]);
+    }, [containerRef, rootRef, navSections, scrollState.activeSection, scrollState.showScrollTop]);
 
     const handleScroll = useCallback(() => {
         // Throttle scroll events using RAF
@@ -122,37 +116,29 @@ export function useParallaxScroll({
         };
     }, [containerRef, handleScroll, updateParallaxLayers]);
 
-    return { activeSection, showScrollTop };
+    return scrollState;
 }
 
 /**
- * Custom hook for handling mouse parallax effect with throttling.
+ * Custom hook for handling mouse parallax effect with RAF throttling.
  */
 export function useMouseParallax(rootRef: RefObject<HTMLDivElement | null>) {
     const rafIdRef = useRef<number | null>(null);
-    const lastMouseRef = useRef({ x: 0, y: 0 });
 
     const handleMouseMove = useCallback(
         (e: React.MouseEvent | MouseEvent) => {
             const root = rootRef.current;
             if (!root) return;
 
-            // Throttle mouse updates via RAF
+            // Throttle via RAF - skip if frame already scheduled
             if (rafIdRef.current) return;
 
             rafIdRef.current = requestAnimationFrame(() => {
                 const x = (e.clientX / window.innerWidth - 0.5) * 20;
                 const y = (e.clientY / window.innerHeight - 0.5) * 10;
 
-                // Only update if values changed significantly
-                if (
-                    Math.abs(x - lastMouseRef.current.x) > 0.1 ||
-                    Math.abs(y - lastMouseRef.current.y) > 0.1
-                ) {
-                    root.style.setProperty('--mouse-x', `${x}`);
-                    root.style.setProperty('--mouse-y', `${y}`);
-                    lastMouseRef.current = { x, y };
-                }
+                root.style.setProperty('--mouse-x', `${x}`);
+                root.style.setProperty('--mouse-y', `${y}`);
 
                 rafIdRef.current = null;
             });
@@ -173,27 +159,31 @@ export function useMouseParallax(rootRef: RefObject<HTMLDivElement | null>) {
 
 /**
  * Custom hook for window height with debounced resize handling.
+ * Debounces to 150ms to reduce unnecessary re-renders during resize.
  */
 export function useWindowHeight(): number {
     const [windowHeight, setWindowHeight] = useState(800);
+    const timeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
     useEffect(() => {
         setWindowHeight(window.innerHeight);
 
-        let resizeTimeout: NodeJS.Timeout;
-
         const handleResize = () => {
-            clearTimeout(resizeTimeout);
-            resizeTimeout = setTimeout(() => {
+            if (timeoutRef.current) {
+                clearTimeout(timeoutRef.current);
+            }
+            timeoutRef.current = setTimeout(() => {
                 setWindowHeight(window.innerHeight);
-            }, 100); // Debounce resize events
+            }, 150);
         };
 
         window.addEventListener('resize', handleResize, { passive: true });
 
         return () => {
             window.removeEventListener('resize', handleResize);
-            clearTimeout(resizeTimeout);
+            if (timeoutRef.current) {
+                clearTimeout(timeoutRef.current);
+            }
         };
     }, []);
 

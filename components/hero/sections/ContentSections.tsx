@@ -1,6 +1,6 @@
 'use client';
 
-import { memo, useEffect, useRef, useState } from 'react';
+import { memo } from 'react';
 import type { ThemeColors } from '../config/seasonThemes';
 
 interface SectionProps {
@@ -8,44 +8,53 @@ interface SectionProps {
     windowHeight: number;
 }
 
-// Custom hook for intersection observer animation
-function useInViewAnimation() {
-    const ref = useRef<HTMLElement>(null);
-    const [isVisible, setIsVisible] = useState(false);
-
-    useEffect(() => {
-        const element = ref.current;
-        if (!element) return;
-
-        const observer = new IntersectionObserver(
-            ([entry]) => {
-                if (entry.isIntersecting) {
-                    setIsVisible(true);
-                }
-            },
-            { threshold: 0.1, rootMargin: '-50px' }
-        );
-
-        observer.observe(element);
-        return () => observer.disconnect();
-    }, []);
-
-    return { ref, isVisible };
+interface ContentSectionConfig {
+    id: string;
+    heading: string;
+    headingId: string;
+    topMultiplier: number;
+    content: React.ReactNode;
+    element?: 'section' | 'footer';
 }
+
+// Reusable Section Component - Single source of truth
+const Section = memo(function Section({
+    config,
+    theme,
+    windowHeight
+}: {
+    config: ContentSectionConfig;
+    theme: ThemeColors;
+    windowHeight: number;
+}) {
+    const Element = config.element || 'section';
+    const isFooter = config.element === 'footer';
+
+    return (
+        <Element
+            className={`absolute left-0 right-0 flex z-30 animate-fade-in-up ${
+                isFooter ? 'items-end justify-center pb-8 h-screen' : 'items-start justify-center pt-[15vh]'
+            }`}
+            style={{
+                top: windowHeight * config.topMultiplier,
+                // Use CSS custom properties set by parent for theme colors
+                animationDelay: `${config.topMultiplier * 0.2}s`
+            }}
+            aria-labelledby={config.headingId}
+        >
+            {config.content}
+        </Element>
+    );
+});
 
 // About Me Section
 export const AboutSection = memo(function AboutSection({ theme, windowHeight }: SectionProps) {
-    const { ref, isVisible } = useInViewAnimation();
-
-    return (
-        <section
-            ref={ref as React.RefObject<HTMLElement>}
-            className={`absolute left-0 right-0 flex items-start justify-center pt-[15vh] z-30 transition-all duration-700 ease-out ${
-                isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
-            }`}
-            style={{ top: windowHeight * 1 }}
-            aria-labelledby="about-heading"
-        >
+    const config: ContentSectionConfig = {
+        id: 'about',
+        heading: 'About Me',
+        headingId: 'about-heading',
+        topMultiplier: 1,
+        content: (
             <div className="max-w-3xl text-center px-8 py-10 rounded-3xl backdrop-blur-sm bg-black/10 border border-white/10 mx-6 shadow-2xl">
                 <h2
                     id="about-heading"
@@ -66,27 +75,39 @@ export const AboutSection = memo(function AboutSection({ theme, windowHeight }: 
                     className="text-lg leading-relaxed transition-colors duration-1000"
                     style={{ color: theme.details.textSub }}
                 >
-                    Whether it's architecting complex backend infrastructure or polishing the finest details
+                    Whether it&apos;s architecting complex backend infrastructure or polishing the finest details
                     of a user interface, I bring dedication and precision to every line of code.
                 </p>
             </div>
-        </section>
-    );
+        )
+    };
+
+    return <Section config={config} theme={theme} windowHeight={windowHeight} />;
 });
 
 // Featured Work Section
 export const WorkSection = memo(function WorkSection({ theme, windowHeight }: SectionProps) {
-    const { ref, isVisible } = useInViewAnimation();
+    const projects = [
+        {
+            title: 'ResearchLens',
+            description: 'An AI-powered research assistant that synthesizes complex academic papers into actionable insights.'
+        },
+        {
+            title: 'ChatBot Builder',
+            description: 'A no-code visual interface for constructing intelligent conversational agents.'
+        },
+        {
+            title: 'Meeting Minutes',
+            description: 'Automated transcription and summarization service for corporate meetings.'
+        }
+    ];
 
-    return (
-        <section
-            ref={ref as React.RefObject<HTMLElement>}
-            className={`absolute left-0 right-0 flex items-start justify-center pt-[15vh] z-30 transition-all duration-700 ease-out ${
-                isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
-            }`}
-            style={{ top: windowHeight * 2 }}
-            aria-labelledby="work-heading"
-        >
+    const config: ContentSectionConfig = {
+        id: 'work',
+        heading: 'Featured Work',
+        headingId: 'work-heading',
+        topMultiplier: 2,
+        content: (
             <div className="max-w-3xl text-center px-8 py-10 rounded-3xl backdrop-blur-sm bg-black/10 border border-white/10 mx-6 shadow-2xl">
                 <h2
                     id="work-heading"
@@ -96,49 +117,38 @@ export const WorkSection = memo(function WorkSection({ theme, windowHeight }: Se
                     Featured Work
                 </h2>
                 <div className="space-y-6">
-                    <article>
-                        <h3 className="text-xl font-medium mb-2" style={{ color: theme.details.text }}>
-                            ResearchLens
-                        </h3>
-                        <p className="text-base" style={{ color: theme.details.textSub }}>
-                            An AI-powered research assistant that synthesizes complex academic papers into actionable insights.
-                        </p>
-                    </article>
-                    <article>
-                        <h3 className="text-xl font-medium mb-2" style={{ color: theme.details.text }}>
-                            ChatBot Builder
-                        </h3>
-                        <p className="text-base" style={{ color: theme.details.textSub }}>
-                            A no-code visual interface for constructing intelligent conversational agents.
-                        </p>
-                    </article>
-                    <article>
-                        <h3 className="text-xl font-medium mb-2" style={{ color: theme.details.text }}>
-                            Meeting Minutes
-                        </h3>
-                        <p className="text-base" style={{ color: theme.details.textSub }}>
-                            Automated transcription and summarization service for corporate meetings.
-                        </p>
-                    </article>
+                    {projects.map((project, index) => (
+                        <article key={index}>
+                            <h3 className="text-xl font-medium mb-2" style={{ color: theme.details.text }}>
+                                {project.title}
+                            </h3>
+                            <p className="text-base" style={{ color: theme.details.textSub }}>
+                                {project.description}
+                            </p>
+                        </article>
+                    ))}
                 </div>
             </div>
-        </section>
-    );
+        )
+    };
+
+    return <Section config={config} theme={theme} windowHeight={windowHeight} />;
 });
 
 // Contact Section
 export const ContactSection = memo(function ContactSection({ theme, windowHeight }: SectionProps) {
-    const { ref, isVisible } = useInViewAnimation();
+    const links = [
+        { href: 'mailto:contact@example.com', label: 'Email' },
+        { href: 'https://linkedin.com', label: 'LinkedIn', external: true },
+        { href: 'https://github.com/Pramish-Sihali', label: 'GitHub', external: true }
+    ];
 
-    return (
-        <section
-            ref={ref as React.RefObject<HTMLElement>}
-            className={`absolute left-0 right-0 flex items-start justify-center pt-[15vh] z-30 transition-all duration-700 ease-out ${
-                isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
-            }`}
-            style={{ top: windowHeight * 3 }}
-            aria-labelledby="contact-heading"
-        >
+    const config: ContentSectionConfig = {
+        id: 'contact',
+        heading: 'Get in Touch',
+        headingId: 'contact-heading',
+        topMultiplier: 3,
+        content: (
             <div className="max-w-3xl text-center px-8 py-10 rounded-3xl backdrop-blur-sm bg-black/10 border border-white/10 mx-6 shadow-2xl">
                 <h2
                     id="contact-heading"
@@ -151,63 +161,50 @@ export const ContactSection = memo(function ContactSection({ theme, windowHeight
                     className="text-lg leading-relaxed mb-8 transition-colors duration-1000"
                     style={{ color: theme.details.textSub }}
                 >
-                    Interested in collaborating or have a project in mind? Let's build something extraordinary together.
+                    Interested in collaborating or have a project in mind? Let&apos;s build something extraordinary together.
                     <br /><br />
-                    I'm currently available for freelance projects and open to discussing new opportunities.
+                    I&apos;m currently available for freelance projects and open to discussing new opportunities.
                 </p>
-                <div className="flex gap-8 justify-center" role="list" aria-label="Contact links">
-                    <a
-                        href="mailto:contact@example.com"
-                        className="text-sm tracking-widest uppercase border-b border-transparent hover:border-current transition-all duration-300 cursor-pointer"
-                        style={{ color: theme.details.text }}
-                        role="listitem"
-                    >
-                        Email
-                    </a>
-                    <a
-                        href="https://linkedin.com"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-sm tracking-widest uppercase border-b border-transparent hover:border-current transition-all duration-300 cursor-pointer"
-                        style={{ color: theme.details.text }}
-                        role="listitem"
-                    >
-                        LinkedIn
-                    </a>
-                    <a
-                        href="https://github.com/Pramish-Sihali"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-sm tracking-widest uppercase border-b border-transparent hover:border-current transition-all duration-300 cursor-pointer"
-                        style={{ color: theme.details.text }}
-                        role="listitem"
-                    >
-                        GitHub
-                    </a>
-                </div>
+                <nav className="flex gap-8 justify-center" aria-label="Contact links">
+                    {links.map((link, index) => (
+                        <a
+                            key={index}
+                            href={link.href}
+                            {...(link.external && {
+                                target: '_blank',
+                                rel: 'noopener noreferrer'
+                            })}
+                            className="text-sm tracking-widest uppercase border-b border-transparent hover:border-current transition-all duration-300"
+                            style={{ color: theme.details.text }}
+                        >
+                            {link.label}
+                        </a>
+                    ))}
+                </nav>
             </div>
-        </section>
-    );
+        )
+    };
+
+    return <Section config={config} theme={theme} windowHeight={windowHeight} />;
 });
 
 // Footer Section
 export const FooterSection = memo(function FooterSection({ theme, windowHeight }: SectionProps) {
-    const { ref, isVisible } = useInViewAnimation();
-
-    return (
-        <footer
-            ref={ref as React.RefObject<HTMLElement>}
-            className={`absolute left-0 right-0 flex items-end justify-center pb-8 z-30 h-screen transition-all duration-700 ease-out ${
-                isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
-            }`}
-            style={{ top: windowHeight * 4 }}
-        >
+    const config: ContentSectionConfig = {
+        id: 'footer',
+        heading: 'Footer',
+        headingId: 'footer-content',
+        topMultiplier: 4,
+        element: 'footer',
+        content: (
             <p
                 className="text-xs tracking-widest uppercase transition-colors duration-1000"
                 style={{ color: theme.details.textSub }}
             >
                 © 2025 Pramish Sihali
             </p>
-        </footer>
-    );
+        )
+    };
+
+    return <Section config={config} theme={theme} windowHeight={windowHeight} />;
 });

@@ -5,35 +5,48 @@
 
 export type Season = 'winter' | 'spring' | 'summer' | 'autumn';
 
+type GradientStop = readonly [color: string, position: string];
+type ColorPair = readonly [start: string, end: string];
+
 export interface ThemeColors {
-    skyGradient: { stops: [string, string][] };
-    moon: { surface: string; inner: string; outer: string; crater: string; halo: string };
-    stars: { color: string; glow: string; intensity: number };
-    mountains: {
-        far: [string, string];
-        midFar: [string, string];
-        mid: [string, string];
-        snowCap: [string, string];
-        accent: string;
+    readonly skyGradient: { readonly stops: readonly GradientStop[] };
+    readonly moon: {
+        readonly surface: string;
+        readonly inner: string;
+        readonly outer: string;
+        readonly crater: string;
+        readonly halo: string;
     };
-    forest: {
-        hills: [string, string];
-        dense: [string, string];
-        foreground: [string, string];
-        treeDark: string;
-        treeLight: string;
-        accent: string;
+    readonly stars: {
+        readonly color: string;
+        readonly glow: string;
+        readonly intensity: number;
     };
-    atmosphere: {
-        mist: [string, string];
-        overlay: string;
-        aurora: boolean;
-        auroraColors?: string[];
+    readonly mountains: {
+        readonly far: ColorPair;
+        readonly midFar: ColorPair;
+        readonly mid: ColorPair;
+        readonly snowCap: ColorPair;
+        readonly accent: string;
     };
-    details: {
-        text: string;
-        textSub: string;
-        background: string;
+    readonly forest: {
+        readonly hills: ColorPair;
+        readonly dense: ColorPair;
+        readonly foreground: ColorPair;
+        readonly treeDark: string;
+        readonly treeLight: string;
+        readonly accent: string;
+    };
+    readonly atmosphere: {
+        readonly mist: ColorPair;
+        readonly overlay: string;
+        readonly aurora: boolean;
+        readonly auroraColors: readonly string[];
+    };
+    readonly details: {
+        readonly text: string;
+        readonly textSub: string;
+        readonly background: string;
     };
 }
 
@@ -103,7 +116,8 @@ export const SEASON_THEMES: Record<Season, ThemeColors> = {
         atmosphere: {
             mist: ['rgba(255,192,203,0.15)', 'rgba(255,192,203,0)'],
             overlay: 'rgba(255,182,193,0.08)',
-            aurora: false
+            aurora: false,
+            auroraColors: []
         },
         details: { text: '#fff5f7', textSub: 'rgba(255,245,247,0.75)', background: '#1a1a28' }
     },
@@ -136,7 +150,8 @@ export const SEASON_THEMES: Record<Season, ThemeColors> = {
         atmosphere: {
             mist: ['rgba(150,200,180,0.05)', 'rgba(150,200,180,0)'],
             overlay: 'rgba(100,180,160,0.02)',
-            aurora: false
+            aurora: false,
+            auroraColors: []
         },
         details: { text: '#e8f5f0', textSub: 'rgba(232,245,240,0.75)', background: '#061010' }
     },
@@ -169,17 +184,19 @@ export const SEASON_THEMES: Record<Season, ThemeColors> = {
         atmosphere: {
             mist: ['rgba(180,100,50,0.06)', 'rgba(180,100,50,0)'],
             overlay: 'rgba(150,80,40,0.03)',
-            aurora: false
+            aurora: false,
+            auroraColors: []
         },
         details: { text: '#ffe8d8', textSub: 'rgba(255,232,216,0.7)', background: '#120605' }
     }
-};
+} as const;
 
 export const SEASON_ICONS: Record<Season, string> = {
     winter: '❄',
     spring: '❀',
     summer: '☀',
     autumn: '🍂'
-};
+} as const;
 
-export const SEASONS: Season[] = ['winter', 'spring', 'summer', 'autumn'];
+// Derive seasons array from SEASON_THEMES keys (single source of truth)
+export const SEASONS = Object.keys(SEASON_THEMES) as Season[];

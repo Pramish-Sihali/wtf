@@ -9,31 +9,24 @@ interface ErrorBoundaryProps {
 
 interface ErrorBoundaryState {
     hasError: boolean;
-    error?: Error;
 }
 
 /**
- * Error Boundary component for graceful error handling.
- * Catches JavaScript errors in child component tree and displays a fallback UI.
+ * Catches JavaScript errors in child components and displays a fallback UI.
  */
-export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
+export default class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
     constructor(props: ErrorBoundaryProps) {
         super(props);
         this.state = { hasError: false };
     }
 
     static getDerivedStateFromError(error: Error): ErrorBoundaryState {
-        return { hasError: true, error };
+        return { hasError: true };
     }
 
     componentDidCatch(error: Error, errorInfo: React.ErrorInfo): void {
-        // Log error to monitoring service in production
         console.error('Portfolio Error Boundary caught an error:', error, errorInfo);
     }
-
-    handleRetry = (): void => {
-        this.setState({ hasError: false, error: undefined });
-    };
 
     render(): ReactNode {
         if (this.state.hasError) {
@@ -43,22 +36,17 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
 
             return (
                 <div
-                    className="min-h-screen flex flex-col items-center justify-center p-8"
-                    style={{ background: 'linear-gradient(to bottom, #0a0a15, #1a1a2e)' }}
+                    className="min-h-screen flex flex-col items-center justify-center p-8 bg-gradient-to-b from-[#0a0a15] to-[#1a1a2e]"
+                    role="alert"
+                    aria-live="assertive"
                 >
                     <div className="text-center max-w-md">
                         <h1 className="text-4xl font-light text-white mb-4">
                             Something went wrong
                         </h1>
-                        <p className="text-white/60 mb-8">
-                            An unexpected error occurred. Please try refreshing the page.
+                        <p className="text-white/60">
+                            An unexpected error occurred. Please refresh the page to continue.
                         </p>
-                        <button
-                            onClick={this.handleRetry}
-                            className="px-6 py-3 bg-white/10 hover:bg-white/20 text-white rounded-full transition-colors duration-300 backdrop-blur-sm border border-white/10"
-                        >
-                            Try Again
-                        </button>
                     </div>
                 </div>
             );
@@ -67,5 +55,3 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
         return this.props.children;
     }
 }
-
-export default ErrorBoundary;
