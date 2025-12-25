@@ -1,11 +1,18 @@
 import type { Metadata } from "next";
-import { Lexend_Deca } from "next/font/google";
+import { Lexend_Deca, DM_Sans } from "next/font/google";
 import "./globals.css";
 
 const lexendDeca = Lexend_Deca({
   subsets: ['latin'],
   variable: '--font-lexend',
   weight: ['300', '400', '600', '700'],
+  display: 'swap',
+});
+
+const dmSans = DM_Sans({
+  subsets: ['latin'],
+  variable: '--font-dm-sans',
+  weight: ['300', '400', '500', '600'],
   display: 'swap',
 });
 
@@ -43,7 +50,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={`${lexendDeca.variable} font-sans antialiased`}>
+      <body className={`${lexendDeca.variable} ${dmSans.variable} font-sans antialiased`}>
         {children}
       </body>
     </html>

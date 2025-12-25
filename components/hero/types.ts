@@ -9,6 +9,7 @@ export interface ParallaxCSSProperties extends CSSProperties {
     '--scroll-y'?: string;
     '--window-height'?: string;
     '--stars-intensity'?: string | number;
+    '--section-offset'?: string;
     '--l0-scroll'?: string;
     '--l1-scroll'?: string;
     '--l2-scroll'?: string;

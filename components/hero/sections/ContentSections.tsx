@@ -2,6 +2,7 @@
 
 import { memo } from 'react';
 import type { ThemeColors } from '../config/seasonThemes';
+import type { ParallaxCSSProperties } from '../types';
 
 interface SectionProps {
     theme: ThemeColors;
@@ -17,7 +18,7 @@ interface ContentSectionConfig {
     element?: 'section' | 'footer';
 }
 
-// Reusable Section Component - Single source of truth
+// Reusable Section Component with parallax scroll effect (same as hero title)
 const Section = memo(function Section({
     config,
     theme,
@@ -29,17 +30,17 @@ const Section = memo(function Section({
 }) {
     const Element = config.element || 'section';
     const isFooter = config.element === 'footer';
+    const sectionOffset = windowHeight * config.topMultiplier;
 
     return (
         <Element
-            className={`absolute left-0 right-0 flex z-30 animate-fade-in-up ${
+            className={`absolute left-0 right-0 flex z-30 parallax-content ${
                 isFooter ? 'items-end justify-center pb-8 h-screen' : 'items-start justify-center pt-[15vh]'
             }`}
             style={{
-                top: windowHeight * config.topMultiplier,
-                // Use CSS custom properties set by parent for theme colors
-                animationDelay: `${config.topMultiplier * 0.2}s`
-            }}
+                top: sectionOffset,
+                '--section-offset': `${sectionOffset}px`,
+            } as ParallaxCSSProperties}
             aria-labelledby={config.headingId}
         >
             {config.content}
@@ -55,10 +56,10 @@ export const AboutSection = memo(function AboutSection({ theme, windowHeight }: 
         headingId: 'about-heading',
         topMultiplier: 1,
         content: (
-            <div className="max-w-3xl text-center px-8 py-10 rounded-3xl backdrop-blur-sm bg-black/10 border border-white/10 mx-6 shadow-2xl">
+            <div className="max-w-3xl text-center px-8 py-10 rounded-3xl backdrop-blur-sm bg-black/10 border border-white/10 mx-6 shadow-2xl font-body">
                 <h2
                     id="about-heading"
-                    className="text-4xl font-light mb-8 transition-colors duration-1000"
+                    className="text-4xl font-light mb-8 transition-colors duration-1000 font-sans"
                     style={{ color: theme.details.text }}
                 >
                     About Me
@@ -108,10 +109,10 @@ export const WorkSection = memo(function WorkSection({ theme, windowHeight }: Se
         headingId: 'work-heading',
         topMultiplier: 2,
         content: (
-            <div className="max-w-3xl text-center px-8 py-10 rounded-3xl backdrop-blur-sm bg-black/10 border border-white/10 mx-6 shadow-2xl">
+            <div className="max-w-3xl text-center px-8 py-10 rounded-3xl backdrop-blur-sm bg-black/10 border border-white/10 mx-6 shadow-2xl font-body">
                 <h2
                     id="work-heading"
-                    className="text-4xl font-light mb-8 transition-colors duration-1000"
+                    className="text-4xl font-light mb-8 transition-colors duration-1000 font-sans"
                     style={{ color: theme.details.text }}
                 >
                     Featured Work
@@ -119,7 +120,7 @@ export const WorkSection = memo(function WorkSection({ theme, windowHeight }: Se
                 <div className="space-y-6">
                     {projects.map((project, index) => (
                         <article key={index}>
-                            <h3 className="text-xl font-medium mb-2" style={{ color: theme.details.text }}>
+                            <h3 className="text-xl font-medium mb-2 font-sans" style={{ color: theme.details.text }}>
                                 {project.title}
                             </h3>
                             <p className="text-base" style={{ color: theme.details.textSub }}>
@@ -149,10 +150,10 @@ export const ContactSection = memo(function ContactSection({ theme, windowHeight
         headingId: 'contact-heading',
         topMultiplier: 3,
         content: (
-            <div className="max-w-3xl text-center px-8 py-10 rounded-3xl backdrop-blur-sm bg-black/10 border border-white/10 mx-6 shadow-2xl">
+            <div className="max-w-3xl text-center px-8 py-10 rounded-3xl backdrop-blur-sm bg-black/10 border border-white/10 mx-6 shadow-2xl font-body">
                 <h2
                     id="contact-heading"
-                    className="text-4xl font-light mb-8 transition-colors duration-1000"
+                    className="text-4xl font-light mb-8 transition-colors duration-1000 font-sans"
                     style={{ color: theme.details.text }}
                 >
                     Get in Touch
@@ -174,7 +175,7 @@ export const ContactSection = memo(function ContactSection({ theme, windowHeight
                                 target: '_blank',
                                 rel: 'noopener noreferrer'
                             })}
-                            className="text-sm tracking-widest uppercase border-b border-transparent hover:border-current transition-all duration-300"
+                            className="text-sm tracking-widest uppercase border-b border-transparent hover:border-current transition-all duration-300 font-sans"
                             style={{ color: theme.details.text }}
                         >
                             {link.label}
@@ -198,7 +199,7 @@ export const FooterSection = memo(function FooterSection({ theme, windowHeight }
         element: 'footer',
         content: (
             <p
-                className="text-xs tracking-widest uppercase transition-colors duration-1000"
+                className="text-xs tracking-widest uppercase transition-colors duration-1000 font-body"
                 style={{ color: theme.details.textSub }}
             >
                 © 2025 Pramish Sihali

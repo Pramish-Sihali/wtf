@@ -8,6 +8,7 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-lexend), system-ui, sans-serif;
+  --font-body: var(--font-dm-sans), system-ui, sans-serif;
   --font-mono: ui-monospace, monospace;
   --color-ring: var(--ring);
   --color-input: var(--input);
@@ -209,19 +210,15 @@
   transform: translate3d(0, calc(400px - var(--l3-scroll) * 0.35px), 0);
 }
 
-/* Content Section Animations - Pure CSS */
-@keyframes fade-in-up {
-  from {
-    opacity: 0;
-    transform: translateY(40px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+/* Content Section Parallax - Same style as hero title */
+.parallax-content {
+  --section-offset: 0;
+  opacity: clamp(0, calc(1 - abs(var(--scroll-y) - var(--section-offset)) / (var(--window-height) * 0.6)), 1);
+  transform: translateY(calc((var(--scroll-y) - var(--section-offset)) * 0.25px));
 }
 
-.animate-fade-in-up {
-  animation: fade-in-up 0.7s ease-out both;
+/* Content font family */
+.font-body {
+  font-family: var(--font-dm-sans), system-ui, sans-serif;
 }
 
