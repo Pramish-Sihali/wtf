@@ -12,6 +12,7 @@ interface AtmosphericParticlesProps {
 interface Particle {
     id: number;
     left: number;
+    top: number;
     size: number;
     duration: number;
     delay: number;
@@ -27,6 +28,7 @@ const AtmosphericParticles = memo(function AtmosphericParticles({ season }: Atmo
         return [...Array(count)].map((_, i) => ({
             id: i,
             left: seededRandom(i * 7.3) * 100,
+            top: seededRandom(i * 9.7) * 120 - 20,
             size: seededRandom(i * 3.7) * (season === 'summer' ? 2.5 : 3) + 1.5,
             duration: seededRandom(i * 5.1) * 10 + 8,
             delay: seededRandom(i * 2.9) * -20,
@@ -85,6 +87,7 @@ const AtmosphericParticles = memo(function AtmosphericParticles({ season }: Atmo
                     style={{
                         ...getParticleStyle(p),
                         left: `${p.left}%`,
+                        top: `${p.top}%`,
                         width: p.size,
                         height: p.size * (season === 'autumn' ? 1.4 : 1),
                         opacity: p.opacity,

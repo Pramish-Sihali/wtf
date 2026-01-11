@@ -92,6 +92,18 @@
    PARALLAX PORTFOLIO ANIMATIONS & STYLES
    ============================================ */
 
+/* Content Entrance Animations */
+@keyframes fadeInFromTop {
+  0% {
+    opacity: 0;
+    transform: translateY(-40px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 /* Particle Animations */
 @keyframes fallDown {
   0% { transform: translateY(-10px) translateX(0) rotate(0deg); }
@@ -213,12 +225,35 @@
 /* Content Section Parallax - Same style as hero title */
 .parallax-content {
   --section-offset: 0;
-  opacity: clamp(0, calc(1 - abs(var(--scroll-y) - var(--section-offset)) / (var(--window-height) * 0.6)), 1);
-  transform: translateY(calc((var(--scroll-y) - var(--section-offset)) * 0.25px));
+  opacity: clamp(0, calc(1 - (var(--scroll-y) - var(--section-offset)) / (var(--window-height) * 0.8)), 1);
+  transform: translateY(calc((var(--scroll-y) - var(--section-offset)) * 0.3px));
 }
 
 /* Content font family */
 .font-body {
   font-family: var(--font-dm-sans), system-ui, sans-serif;
+}
+
+/* Scroll-triggered entrance animations */
+.content-section {
+  opacity: 0;
+  transform: translateY(-50px);
+  transition: none;
+}
+
+.content-section.animate-in {
+  animation: fadeInFromTop 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Moon GitHub Button - positioned separately from SVG layers */
+@keyframes moonPulse {
+  0%, 100% {
+    opacity: 0.3;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(1.05);
+  }
 }
 

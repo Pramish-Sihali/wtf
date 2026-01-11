@@ -10,6 +10,7 @@ import { AboutSection, WorkSection, ContactSection, FooterSection } from './sect
 import AtmosphericParticles from './components/AtmosphericParticles';
 import SeasonControls from './components/SeasonControls';
 import StarsStatic from './components/StarsStatic';
+import { IconBrandGithub } from '@tabler/icons-react';
 import {
     Moon,
     SkyGradient,
@@ -91,32 +92,35 @@ export default function ParallaxPortfolio() {
                 className="w-full h-full overflow-y-auto overflow-x-hidden smooth-scroll hide-scrollbar"
                 onMouseMove={handleMouseMove}
             >
-                <div className="fixed inset-0 overflow-x-hidden overflow-y-visible pointer-events-none parallax-hero-scale">
+                <div className="fixed inset-0 overflow-x-hidden overflow-y-visible parallax-hero-scale pointer-events-none">
                     <div className="absolute inset-0">
                         <SkyGradient theme={theme} />
                     </div>
 
-                    <div className="absolute inset-0 overflow-hidden transition-opacity duration-1000 parallax-stars pointer-events-none">
+                    <div className="absolute inset-0 overflow-hidden transition-opacity duration-1000 parallax-stars">
                         <StarsStatic theme={theme} />
                     </div>
 
-                    <div className="absolute inset-0 parallax-aurora pointer-events-none">
+                    <div className="absolute inset-0 parallax-aurora">
                         <Aurora theme={theme} />
                     </div>
 
                     {LAYER_COMPONENTS.map((LayerComponent, index) => (
                         <div
                             key={index}
-                            className={`absolute inset-0 will-change-transform parallax-layer-${index} pointer-events-none`}
+                            className={`absolute inset-0 will-change-transform parallax-layer-${index}`}
                         >
                             <LayerComponent theme={theme} />
                         </div>
                     ))}
 
-                    <div className="absolute inset-0 pointer-events-none parallax-mist" style={{ opacity: 0.7 }}>
+                    <div className="absolute inset-0 parallax-mist" style={{ opacity: 0.7 }}>
                         <MistLayer theme={theme} />
                     </div>
                 </div>
+
+                {/* GitHub Button - Separate from all layers, always on top */}
+                <MoonGitHubButton theme={theme} />
 
                 <div id="main-content" style={{ height: totalHeight, position: 'relative' }}>
                     <HeroSection theme={theme} />
@@ -246,5 +250,43 @@ function ScrollToTopButton({ visible, onClick, theme }: ScrollToTopButtonProps) 
                 <path d="M18 15l-6-6-6 6" />
             </svg>
         </button>
+    );
+}
+
+// GitHub button positioned over the moon - completely separate from SVG layers
+function MoonGitHubButton({ theme }: { theme: ThemeColors }) {
+    return (
+        <a
+            href="https://github.com/Pramish-Sihali"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="fixed flex items-center justify-center rounded-full cursor-pointer transition-all duration-300 hover:scale-125 active:scale-95 group focus:outline-none focus:ring-2 focus:ring-white/50 z-[9999]"
+            style={{
+                // Position to match moon location in SVG viewBox (1100, 280 in 1440x900)
+                // Using right positioning since moon is on right side
+                right: 'calc((1 - 1100/1440) * 100vw + 2vw)',
+                top: 'calc(280/900 * 100vh)',
+                width: '80px',
+                height: '80px',
+                transform: 'translate(50%, -50%)',
+            }}
+            title="Visit my GitHub Profile"
+            aria-label="Visit my GitHub Profile - Opens in new tab"
+        >
+            {/* Glow effect */}
+            <div className="absolute inset-0 bg-white/20 rounded-full blur-2xl opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition-opacity duration-300 scale-150" />
+            <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
+            {/* Pulse ring */}
+            <div className="absolute inset-[-8px] rounded-full border-2 border-white/20 opacity-50 group-hover:opacity-100 group-hover:scale-110 transition-all duration-300" />
+
+            <IconBrandGithub
+                size={36}
+                stroke={1.5}
+                className="relative z-10 transition-all duration-500 group-hover:rotate-[360deg] group-hover:scale-110 drop-shadow-lg"
+                style={{ color: theme.moon.crater }}
+                aria-hidden="true"
+            />
+        </a>
     );
 }

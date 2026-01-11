@@ -1,7 +1,6 @@
 'use client';
 
 import { memo, useMemo } from 'react';
-import { IconBrandGithub } from '@tabler/icons-react';
 import { seededRandom } from '@/lib/seededRandom';
 import type { ThemeColors } from '../config/seasonThemes';
 import { getMoonPhase } from '../utils/moonPhase';
@@ -26,7 +25,7 @@ export const Moon = memo(function Moon({ theme }: LayerProps) {
     const r = 62;
 
     return (
-        <svg viewBox="0 0 1440 900" preserveAspectRatio="xMidYMax slice" className="w-full h-full pointer-events-none" aria-hidden="true">
+        <svg viewBox="0 0 1440 900" preserveAspectRatio="xMidYMax slice" className="w-full h-full" aria-hidden="true">
             <defs>
                 <radialGradient id="moonSurface" cx="35%" cy="35%" r="65%">
                     <stop offset="0%" stopColor={theme.moon.inner} className="transition-all duration-1000" />
@@ -105,26 +104,6 @@ export const Moon = memo(function Moon({ theme }: LayerProps) {
             </g>
 
             <circle cx={cx} cy={cy} r={r} fill="url(#moonInnerGlow)" />
-
-            <foreignObject x={cx - r} y={cy - r} width={r * 2} height={r * 2} className="pointer-events-auto">
-                <a
-                    href="https://github.com/Pramish-Sihali"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-full h-full flex items-center justify-center transition-all duration-500 hover:scale-110 group relative rounded-full"
-                    title="GitHub Profile"
-                    aria-label="Visit GitHub Profile"
-                >
-                    <div className="absolute inset-0 bg-white/10 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                    <IconBrandGithub
-                        size={32}
-                        stroke={1.5}
-                        className="relative z-10 transition-all duration-1000 group-hover:rotate-12"
-                        style={{ color: theme.moon.crater }}
-                        aria-hidden="true"
-                    />
-                </a>
-            </foreignObject>
         </svg>
     );
 });

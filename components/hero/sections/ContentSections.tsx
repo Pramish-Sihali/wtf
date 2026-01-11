@@ -1,8 +1,7 @@
 'use client';
 
-import { memo } from 'react';
+import { memo, useEffect, useRef } from 'react';
 import type { ThemeColors } from '../config/seasonThemes';
-import type { ParallaxCSSProperties } from '../types';
 
 interface SectionProps {
     theme: ThemeColors;
@@ -18,7 +17,7 @@ interface ContentSectionConfig {
     element?: 'section' | 'footer';
 }
 
-// Reusable Section Component with parallax scroll effect (same as hero title)
+// Reusable Section Component with scroll-triggered entrance animation
 const Section = memo(function Section({
     config,
     theme,
@@ -31,16 +30,53 @@ const Section = memo(function Section({
     const Element = config.element || 'section';
     const isFooter = config.element === 'footer';
     const sectionOffset = windowHeight * config.topMultiplier;
+    const sectionRef = useRef<HTMLElement>(null);
+
+    // Intersection Observer for scroll-triggered animation
+    useEffect(() => {
+        const section = sectionRef.current;
+        if (!section) return;
+
+        // Find the scroll container (parent with overflow-y: auto)
+        let scrollContainer: HTMLElement | null = section.parentElement;
+        while (scrollContainer) {
+            const style = window.getComputedStyle(scrollContainer);
+            if (style.overflowY === 'auto' || style.overflowY === 'scroll') {
+                break;
+            }
+            scrollContainer = scrollContainer.parentElement;
+        }
+
+        const observer = new IntersectionObserver(
+            (entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('animate-in');
+                        observer.unobserve(entry.target); // Trigger only once
+                    }
+                });
+            },
+            {
+                root: scrollContainer, // Use scroll container as root
+                threshold: 0.1,
+                rootMargin: '0px 0px -100px 0px'
+            }
+        );
+
+        observer.observe(section);
+
+        return () => observer.disconnect();
+    }, []);
 
     return (
         <Element
-            className={`absolute left-0 right-0 flex z-30 parallax-content ${
+            ref={sectionRef as React.RefObject<HTMLElement>}
+            className={`absolute left-0 right-0 flex z-30 content-section ${
                 isFooter ? 'items-end justify-center pb-8 h-screen' : 'items-start justify-center pt-[15vh]'
             }`}
             style={{
                 top: sectionOffset,
-                '--section-offset': `${sectionOffset}px`,
-            } as ParallaxCSSProperties}
+            }}
             aria-labelledby={config.headingId}
         >
             {config.content}
@@ -120,7 +156,7 @@ export const WorkSection = memo(function WorkSection({ theme, windowHeight }: Se
                 <div className="space-y-6">
                     {projects.map((project, index) => (
                         <article key={index}>
-                            <h3 className="text-xl font-medium mb-2 font-sans" style={{ color: theme.details.text }}>
+                            <h3 className="text-xl font-medium mb-2" style={{ color: theme.details.text }}>
                                 {project.title}
                             </h3>
                             <p className="text-base" style={{ color: theme.details.textSub }}>
@@ -175,7 +211,7 @@ export const ContactSection = memo(function ContactSection({ theme, windowHeight
                                 target: '_blank',
                                 rel: 'noopener noreferrer'
                             })}
-                            className="text-sm tracking-widest uppercase border-b border-transparent hover:border-current transition-all duration-300 font-sans"
+                            className="text-sm tracking-widest uppercase border-b border-transparent hover:border-current transition-all duration-300"
                             style={{ color: theme.details.text }}
                         >
                             {link.label}
